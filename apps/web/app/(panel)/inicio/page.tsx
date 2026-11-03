@@ -1,18 +1,27 @@
 'use client';
+
 import Link from 'next/link';
 import { usePanel } from '@/components/Panel';
 import { Badge, Cargando, EstadoBadge, Icono, Vacio, useDatos, type NombreIcono } from '@/components/ui';
 import { ROL_NOMBRE, fecha, hace, rangoHora } from '@/lib/formato';
 import type { Notificacion, ReservaPropia } from '@/lib/tipos';
 import type { Permiso } from '@reservaitn/shared';
+import styles from './inicio.module.css';
 
-/** Tarjetas de acceso rápido; cada una se muestra solo si el rol tiene el permiso. */
-const ACCESOS: { href: string; titulo: string; texto: string; icono: NombreIcono; permiso?: Permiso | Permiso[]; naranja?: boolean }[] = [
-  { href: '/reservar', titulo: 'Nueva reserva', texto: 'Te sugerimos la mejor sala', icono: 'destello', permiso: 'reserva:solicitar', naranja: true },
-  { href: '/disponibilidad', titulo: 'Disponibilidad', texto: 'Calendario semanal por sala', icono: 'calendario' },
-  { href: '/aprobaciones', titulo: 'Aprobaciones', texto: 'Solicitudes por decidir', icono: 'aprobar', permiso: 'reserva:aprobar' },
+/** Los permisos y destinos son los originales de ReservaITN. */
+const ACCESOS: {
+  href: string;
+  titulo: string;
+  texto: string;
+  icono: NombreIcono;
+  permiso?: Permiso | Permiso[];
+  destacado?: boolean;
+}[] = [
+  { href: '/reservar', titulo: 'Nueva reserva', texto: 'Solicitar un espacio', icono: 'destello', permiso: 'reserva:solicitar', destacado: true },
+  { href: '/disponibilidad', titulo: 'Disponibilidad', texto: 'Consultar horarios', icono: 'calendario' },
+  { href: '/aprobaciones', titulo: 'Aprobaciones', texto: 'Revisar solicitudes', icono: 'aprobar', permiso: 'reserva:aprobar' },
   { href: '/dashboard', titulo: 'Dashboard', texto: 'Ocupación y reportes', icono: 'grafico', permiso: 'dashboard:ver' },
-  { href: '/importacion', titulo: 'Importar semestre', texto: 'Carga el Excel de planificación', icono: 'subir', permiso: 'planificacion:importar' },
+  { href: '/importacion', titulo: 'Importar semestre', texto: 'Planificación académica', icono: 'subir', permiso: 'planificacion:importar' },
   { href: '/mantencion', titulo: 'Mantención', texto: 'Daños e inventario', icono: 'herramienta', permiso: ['danio:reportar', 'danio:gestionar'] },
   { href: '/salas', titulo: 'Salas', texto: 'Recursos y equipamiento', icono: 'edificio', permiso: 'recurso:gestionar' },
   { href: '/usuarios', titulo: 'Usuarios', texto: 'Cuentas y roles', icono: 'usuarios', permiso: 'usuario:gestionar' },
@@ -23,87 +32,165 @@ function saludo() {
   return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
 }
 
-/** Página de inicio de todos los roles: bienvenida, accesos según permisos, próximas reservas y avisos. */
+function diaDeReserva(inicio: string) {
+  const d = new Date(inicio);
+  return {
+    dia: new Intl.DateTimeFormat('es-CL', { day: '2-digit' }).format(d),
+    mes: new Intl.DateTimeFormat('es-CL', { month: 'short' }).format(d).replace('.', '').toUpperCase(),
+  };
+}
+
+/** Inicio: conserva la sesión, los permisos y las consultas reales del proyecto. */
 export default function Inicio() {
   const { sesion, puede } = usePanel();
   const solicita = puede('reserva:solicitar');
+  const aprueba = puede('reserva:aprobar');
   const reservas = useDatos<ReservaPropia[]>(solicita ? '/reservas/mias' : null);
   const notifs = useDatos<Notificacion[]>('/notificaciones/mias');
-  const pendientes = useDatos<unknown[]>(puede('reserva:aprobar') ? '/reservas/pendientes' : null);
+  const pendientes = useDatos<unknown[]>(aprueba ? '/reservas/pendientes' : null);
 
   const ahora = Date.now();
   const proximas = (reservas.datos ?? [])
     .filter((r) => new Date(r.fin).getTime() > ahora && (r.estado === 'APROBADA' || r.estado === 'PENDIENTE'))
     .sort((a, b) => a.inicio.localeCompare(b.inicio));
+
   const nombre = sesion.usuario.nombre.split(' ')[0];
+  const avisosSinLeer = (notifs.datos ?? []).filter((n) => !n.leida).length;
+  const accesosVisibles = ACCESOS.filter((a) => puede(a.permiso));
+  const tieneIndicadores = solicita || aprueba || Boolean(notifs.datos?.length);
 
   return (
-    <>
-      <section className="hero">
-        <h1>{saludo()}, {nombre}</h1>
-        <p>
-          {ROL_NOMBRE[sesion.usuario.rol]} · {new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-          {pendientes.datos && pendientes.datos.length > 0 && <> · tienes <strong style={{ color: '#fff' }}>{pendientes.datos.length} solicitudes</strong> por aprobar</>}
-        </p>
-        <div className="lema-hero"><span>ITN</span><span>Técnica</span><span>Innovación</span><span>Oportunidades</span><span>Comunidad</span></div>
+    <div className={styles.inicio}>
+      <section className={styles.bienvenida} aria-label="Bienvenida">
+        <div className={styles.bienvenidaTexto}>
+          <span className={styles.sobretitulo}>INSTITUTO TÉCNICO DEL NORTE</span>
+          <h1>¡{saludo()}, {nombre}!</h1>
+          <p>Tu espacio para gestionar actividades y recursos institucionales.</p>
+          <div className={styles.etiquetas}>
+            <span><Icono n="usuarios" t={16} />{ROL_NOMBRE[sesion.usuario.rol]}</span>
+            <span><Icono n="calendario" t={16} />{new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          </div>
+        </div>
+        <div className={styles.imagenBienvenida} aria-hidden="true" />
       </section>
 
-      <section className="accesos">
-        {ACCESOS.filter((a) => puede(a.permiso)).map((a) => (
-          <Link key={a.href} href={a.href} className={`acceso${a.naranja ? ' naranja' : ''}`}>
-            <span className="ico"><Icono n={a.icono} t={20} /></span>
-            <span><strong>{a.titulo}</strong><small>{a.texto}</small></span>
+      <nav className={styles.accesos} aria-label="Accesos rápidos">
+        {accesosVisibles.map((a) => (
+          <Link key={a.href} href={a.href} className={`${styles.acceso} ${a.destacado ? styles.accesoDestacado : ''}`}>
+            <span className={styles.iconoAcceso}><Icono n={a.icono} t={24} /></span>
+            <span className={styles.textoAcceso}>
+              <strong>{a.titulo}</strong>
+              <small>{a.texto}</small>
+            </span>
+            <span className={styles.flecha} aria-hidden="true">›</span>
           </Link>
         ))}
-      </section>
+      </nav>
 
-      <div className="grid-2">
+      {tieneIndicadores && (
+        <section className={styles.indicadores} aria-label="Resumen personal">
+          {solicita && (
+            <Link href="/mis-reservas" className={styles.indicador}>
+              <span className={styles.iconoIndicador}><Icono n="calendario" t={22} /></span>
+              <span>
+                <small>Mis próximas reservas</small>
+                <strong>{reservas.cargando && !reservas.datos ? '…' : proximas.length}</strong>
+              </span>
+            </Link>
+          )}
+          {aprueba && (
+            <Link href="/aprobaciones" className={styles.indicador}>
+              <span className={styles.iconoIndicador}><Icono n="aprobar" t={22} /></span>
+              <span>
+                <small>Solicitudes por aprobar</small>
+                <strong>{pendientes.cargando && !pendientes.datos ? '…' : (pendientes.datos?.length ?? '—')}</strong>
+              </span>
+            </Link>
+          )}
+          <Link href="/notificaciones" className={styles.indicador}>
+            <span className={styles.iconoIndicador}><Icono n="campana" t={22} /></span>
+            <span>
+              <small>Avisos sin leer</small>
+              <strong>{notifs.cargando && !notifs.datos ? '…' : avisosSinLeer}</strong>
+            </span>
+          </Link>
+        </section>
+      )}
+
+      <div className={`${styles.columnas} ${!solicita ? styles.unaColumna : ''}`}>
         {solicita && (
-          <section className="card">
-            <div className="card-head">
-              <h2>Mis próximas reservas</h2>
-              <Link href="/mis-reservas" className="chico">Ver todas</Link>
+          <section className={styles.panel}>
+            <div className={styles.cabeceraPanel}>
+              <div className={styles.tituloPanel}>
+                <span className={styles.iconoTitulo}><Icono n="calendario" t={20} /></span>
+                <h2>Mis próximas reservas</h2>
+              </div>
+              <Link href="/mis-reservas">Ver todas <span aria-hidden="true">→</span></Link>
             </div>
             {reservas.cargando && !reservas.datos ? <Cargando /> : proximas.length === 0 ? (
-              <Vacio titulo="No tienes reservas próximas">
-                <Link href="/reservar">Reserva una sala</Link>
-              </Vacio>
+              <div className={styles.vacio}><Vacio titulo="No tienes reservas próximas"><Link href="/reservar">Solicitar una reserva</Link></Vacio></div>
             ) : (
-              <ul className="timeline">
-                {proximas.slice(0, 5).map((r) => (
-                  <li key={r.id}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <strong>{r.sala.codigo}</strong> <span className="muted chico">{r.sala.sede.nombre}</span> <EstadoBadge estado={r.estado} />
-                    </div>
-                    <small>{fecha(r.inicio)} · {rangoHora(r.inicio, r.fin)} · {r.motivo}</small>
-                  </li>
-                ))}
+              <ul className={styles.listaReservas}>
+                {proximas.slice(0, 5).map((r) => {
+                  const { dia, mes } = diaDeReserva(r.inicio);
+                  return (
+                    <li key={r.id} className={styles.reserva}>
+                      <div className={styles.fechaReserva}><span>{mes}</span><strong>{dia}</strong></div>
+                      <div className={styles.detalleReserva}>
+                        <div className={styles.encabezadoReserva}>
+                          <strong>{r.sala.codigo}</strong>
+                          <EstadoBadge estado={r.estado} />
+                        </div>
+                        <small>{r.sala.sede.nombre} · {rangoHora(r.inicio, r.fin)}</small>
+                        <p>{r.motivo}</p>
+                        <span className={styles.soloLectores}>{fecha(r.inicio)}</span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
         )}
 
-        <section className="card">
-          <div className="card-head">
-            <h2>Avisos recientes</h2>
-            <Link href="/notificaciones" className="chico">Ver todos</Link>
+        <section className={styles.panel}>
+          <div className={styles.cabeceraPanel}>
+            <div className={styles.tituloPanel}>
+              <span className={styles.iconoTitulo}><Icono n="campana" t={20} /></span>
+              <h2>Avisos recientes</h2>
+            </div>
+            <Link href="/notificaciones">Ver todos <span aria-hidden="true">→</span></Link>
           </div>
           {notifs.cargando && !notifs.datos ? <Cargando /> : !notifs.datos?.length ? (
-            <Vacio icono="campana" titulo="Sin avisos por ahora" />
+            <div className={styles.sinAvisos}>
+              <span className={styles.campanaVacia}><Icono n="campana" t={28} /></span>
+              <strong>Sin avisos por ahora</strong>
+              <p>Te informaremos aquí sobre cambios, aprobaciones y novedades.</p>
+            </div>
           ) : (
-            <ul className="timeline">
+            <ul className={styles.listaAvisos}>
               {notifs.datos.slice(0, 5).map((n) => (
                 <li key={n.id}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <strong>{n.titulo}</strong> {!n.leida && <Badge tono="naranja">Nuevo</Badge>}
+                  <div className={styles.avisoTitulo}>
+                    <strong>{n.titulo}</strong>{!n.leida && <Badge tono="naranja">Nuevo</Badge>}
                   </div>
-                  <small>{n.cuerpo} · {hace(n.creadaEn)}</small>
+                  <p>{n.cuerpo}</p>
+                  <small>{hace(n.creadaEn)}</small>
                 </li>
               ))}
             </ul>
           )}
         </section>
       </div>
-    </>
+
+      <section className={styles.disponibilidad}>
+        <div className={styles.disponibilidadIcono}><Icono n="calendario" t={26} /></div>
+        <div>
+          <h2>Consulta la disponibilidad de espacios</h2>
+          <p>Revisa los horarios de salas y laboratorios antes de planificar tus actividades.</p>
+        </div>
+        <Link href="/disponibilidad">Ver disponibilidad <span aria-hidden="true">→</span></Link>
+      </section>
+    </div>
   );
 }
