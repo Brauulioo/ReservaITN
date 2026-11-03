@@ -14,11 +14,13 @@ class MantencionController {
     private readonly notif: NotificacionesService,
   ) {}
 
+  /** GET /mantencion/salas/:salaId/inventario: ítems esperados de la sala. */
   @Get('salas/:salaId/inventario')
   inventario(@Param('salaId', ParseUUIDPipe) salaId: string) {
     return this.prisma.itemInventario.findMany({ where: { salaId }, orderBy: { nombre: 'asc' } });
   }
 
+  /** POST /mantencion/inventario: registra un conteo por ítem (queda el historial de conteos). */
   @RequierePermiso('inventario:registrar')
   @Post('inventario')
   async conteo(
@@ -31,6 +33,7 @@ class MantencionController {
     return { registrados: dto.items.length };
   }
 
+  /** POST /mantencion/danios: crea el reporte y avisa a todos los usuarios de Operaciones. */
   @RequierePermiso('danio:reportar')
   @Post('danios')
   reportar(
@@ -50,6 +53,7 @@ class MantencionController {
     });
   }
 
+  /** GET /mantencion/danios?estado: reportes, del más reciente al más antiguo. */
   @RequierePermiso('danio:gestionar')
   @Get('danios')
   danios(@Query('estado') estado?: 'ABIERTO' | 'EN_PROCESO' | 'RESUELTO') {
@@ -60,6 +64,7 @@ class MantencionController {
     });
   }
 
+  /** PATCH /mantencion/danios/:id: EN_PROCESO o RESUELTO (fija `resueltoEn`). */
   @RequierePermiso('danio:gestionar')
   @Patch('danios/:id')
   actualizar(

@@ -20,6 +20,9 @@ import type { UsuarioSesion } from '../comun/auth.guard';
 
 const ESTADOS_BLOQUEANTES = ['APROBADA'] as const;
 
+/** Fecha legible para los avisos (el proceso corre en hora de Chile, ver main.ts). */
+const fechaHora = (d: Date) => d.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
+
 @Injectable()
 export class ReservasService {
   constructor(
@@ -41,6 +44,7 @@ export class ReservasService {
     });
   }
 
+  /** Crea la reserva y su evento CREADA; si queda pendiente, avisa a sus aprobadores. */
   async solicitar(dto: ReservaCreate, u: UsuarioSesion) {
     const sala = await this.prisma.sala.findUnique({ where: { id: dto.salaId } });
     if (!sala || !sala.activa) throw new NotFoundException('Sala no encontrada');
@@ -71,7 +75,7 @@ export class ReservasService {
           tx,
           aprobadores,
           'Nueva solicitud de reserva',
-          `${u.nombre} solicita ${sala.codigo} (${dto.inicio.toISOString()})`,
+          `${u.nombre} solicita ${sala.codigo} (${fechaHora(dto.inicio)})`,
           reserva.id,
         );
       }
@@ -79,6 +83,7 @@ export class ReservasService {
     });
   }
 
+  /** Aplica una transición (aprobar, rechazar, cancelar, liberar), la registra y avisa al solicitante. */
   async decidir(id: string, accion: AccionReserva, u: UsuarioSesion, comentario?: string) {
     const r = await this.prisma.reserva.findUnique({
       where: { id },
@@ -115,7 +120,7 @@ export class ReservasService {
         tx,
         [r.solicitanteId],
         `Su reserva fue ${nuevo.toLowerCase()}`,
-        `${r.sala.codigo}, ${r.inicio.toISOString()}${comentario ? ` — ${comentario}` : ''}`,
+        `${r.sala.codigo}, ${fechaHora(r.inicio)}${comentario ? ` — ${comentario}` : ''}`,
         id,
       );
       return actualizada;
@@ -127,7 +132,7 @@ export class ReservasService {
     const rs = await this.prisma.reserva.findMany({
       where: { estado: 'PENDIENTE', inicio: { gt: new Date() } },
       include: {
-        sala: { select: { codigo: true, carreraExclusivaId: true } },
+        sala: { select: { codigo: true, nombre: true, carreraExclusivaId: true, sede: { select: { nombre: true } } } },
         solicitante: { select: { nombre: true, rol: true, carreraId: true } },
       },
       orderBy: { inicio: 'asc' },
@@ -142,6 +147,17 @@ export class ReservasService {
     );
   }
 
+  /** Reservas pedidas por el usuario, de la más futura a la más antigua (máx. 200). */
+  mias(u: UsuarioSesion) {
+    return this.prisma.reserva.findMany({
+      where: { solicitanteId: u.id },
+      include: { sala: { select: { codigo: true, nombre: true, sede: { select: { nombre: true } } } } },
+      orderBy: { inicio: 'desc' },
+      take: 200,
+    });
+  }
+
+  /** Eventos de la reserva en orden, con nombre y rol de quien actuó. */
   historial(id: string) {
     return this.prisma.eventoReserva.findMany({
       where: { reservaId: id },
@@ -150,6 +166,7 @@ export class ReservasService {
     });
   }
 
+  /** Lanza 403 si el usuario no puede ejecutar la acción sobre esta reserva. */
   private autorizar(
     accion: AccionReserva,
     r: { solicitanteId: string; solicitante: { carreraId: string | null }; sala: { carreraExclusivaId: string | null } },
@@ -173,6 +190,7 @@ export class ReservasService {
       throw new ForbiddenException('Solo operaciones libera reservas no usadas');
   }
 
+  /** Directores de las carreras involucradas; sin carrera, Dirección Académica. */
   private async aprobadoresPara(
     tx: Pick<PrismaService, 'usuario'>,
     carreraSolicitante: string | null,

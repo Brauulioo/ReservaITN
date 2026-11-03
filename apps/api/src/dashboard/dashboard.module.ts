@@ -23,6 +23,7 @@ export function horasDisponiblesPorSala(desde: Date, hasta: Date): number {
 class DashboardController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** GET /dashboard/ocupacion?desde&hasta&sedeId: índice global y por sala (R12). Excluye bloqueos de mantención. */
   @RequierePermiso('dashboard:ver')
   @Get('ocupacion')
   async ocupacion(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas) {
@@ -66,6 +67,7 @@ class DashboardController {
     };
   }
 
+  /** GET /dashboard/indicadores: pendientes y KPIs del Plan de Beneficios (B3 no usadas, B6 tiempo de aprobación). */
   @RequierePermiso('dashboard:ver')
   @Get('indicadores')
   async indicadores(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas) {
@@ -76,10 +78,13 @@ class DashboardController {
       this.prisma.reserva.count({ where: { ...where, estado: 'LIBERADA' } }),
       this.prisma.reserva.findMany({
         where: { ...where, decididaEn: { not: null }, origen: 'SOLICITUD' },
-        select: { creadaEn: true, decididaEn: true },
+        select: { creadaEn: true, decididaEn: true, solicitanteId: true, aprobadorId: true },
       }),
     ]);
-    const horasAprob = decididas.map((r) => (r.decididaEn!.getTime() - r.creadaEn.getTime()) / 3_600_000);
+    // Las autoaprobadas (Subdirección, Dirección Académica) no esperan a nadie: no cuentan para B6
+    const horasAprob = decididas
+      .filter((r) => r.aprobadorId !== r.solicitanteId)
+      .map((r) => Math.max(0, r.decididaEn!.getTime() - r.creadaEn.getTime()) / 3_600_000);
     return {
       totalReservas: total,
       pendientes,

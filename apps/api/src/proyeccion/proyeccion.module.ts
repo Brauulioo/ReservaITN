@@ -9,6 +9,7 @@ import { ZodPipe } from '../comun/zod.pipe';
 class ProyeccionController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** GET /proyeccion: ranking día × jornada; top 3 de mayor y de menor uso (horas ociosas, B8). */
   @RequierePermiso('dashboard:ver')
   @Get()
   async proyeccion(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas) {

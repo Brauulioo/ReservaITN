@@ -40,6 +40,7 @@ class ImportacionController {
     return this.svc.importar(archivo, s.desde, s.hasta, u);
   }
 
+  /** GET /importaciones: las 20 cargas más recientes con su responsable. */
   @RequierePermiso('planificacion:importar')
   @Get()
   historial() {

@@ -25,6 +25,7 @@ class SugerenciaController {
     private readonly reservas: ReservasService,
   ) {}
 
+  /** POST /sugerencia: sala sugerida libre + hasta 3 alternativas (pueden esperar ≤ 30 min). */
   @RequierePermiso('reserva:solicitar')
   @Post()
   async sugerir(@Body(new ZodPipe(sugerenciaSchema)) q: z.infer<typeof sugerenciaSchema>, @UsuarioActual() u: UsuarioSesion) {

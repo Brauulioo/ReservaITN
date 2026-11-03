@@ -11,6 +11,7 @@ import { UsuarioActual, type UsuarioSesion } from '../comun/auth.guard';
 export class NotificacionesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Crea un aviso por usuario (sin duplicados) dentro de la transacción de quien lo origina. */
   notificar(
     tx: Prisma.TransactionClient,
     usuarioIds: string[],
@@ -29,6 +30,7 @@ export class NotificacionesService {
 class NotificacionesController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** GET /notificaciones/mias: los 50 avisos más recientes del usuario. */
   @Get('mias')
   mias(@UsuarioActual() u: UsuarioSesion) {
     return this.prisma.notificacion.findMany({
@@ -38,6 +40,13 @@ class NotificacionesController {
     });
   }
 
+  /** PATCH /notificaciones/leidas: marca como leídos todos los avisos del usuario. */
+  @Patch('leidas')
+  todasLeidas(@UsuarioActual() u: UsuarioSesion) {
+    return this.prisma.notificacion.updateMany({ where: { usuarioId: u.id, leida: false }, data: { leida: true } });
+  }
+
+  /** PATCH /notificaciones/:id/leida: solo afecta avisos del propio usuario. */
   @Patch(':id/leida')
   leida(@UsuarioActual() u: UsuarioSesion, @Param('id') id: string) {
     return this.prisma.notificacion.updateMany({ where: { id, usuarioId: u.id }, data: { leida: true } });

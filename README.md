@@ -32,7 +32,11 @@ reservaitn/
 │   │   │   ├── mantencion/      1.4.10 daños e inventario
 │   │   │   └── comun/           Prisma, validación Zod, guard, manejo de errores
 │   │   └── test/            pruebas de integración contra PostgreSQL
-│   ├── web/                 Next.js: login, dashboard (1.4.7–1.4.8), aprobaciones (1.4.4)
+│   ├── web/                 Next.js con la identidad visual ITN (ver docs/09-web.md)
+│   │   ├── app/(panel)/     una carpeta por pantalla: inicio, reservar, disponibilidad, mis-reservas,
+│   │   │                    aprobaciones, dashboard, salas, importacion, mantencion, usuarios…
+│   │   ├── components/      Panel (menú por rol), ui (íconos, modal, avisos), Historial
+│   │   └── lib/             api (cliente HTTP y sesión), formato, tipos
 │   └── mobile/src/
 │       ├── docentes/        1.4.9  app de docentes y estudiantes
 │       ├── mantencion/      1.4.10 app de aseo y mantención
@@ -76,7 +80,17 @@ pnpm dev
 - Correos de prueba: http://localhost:8025
 
 Usuarios demo (contraseña `reservaitn`): `subdireccion@`, `datd@`, `academica@`, `dir.inf@`,
-`docente@`, `estudiante@`, `operaciones@`, `aseo@` + `itn.cl`.
+`docente@`, `estudiante@`, `operaciones@`, `aseo@` + `itn.cl`. En el login hay botones para elegirlos.
+
+### Con PostgreSQL instalado en Windows (sin Docker)
+
+1. Crear la base `reservaitn` (por ejemplo desde DBeaver o pgAdmin).
+2. En `apps/api/.env` poner el usuario y la contraseña locales en `DATABASE_URL`. **No** los copie a
+   `.env.example`: ese archivo se sube a GitHub.
+3. Omitir `pnpm db:up` (usaría el mismo puerto 5432) y seguir con `pnpm db:migrate && pnpm db:seed`.
+
+Si se mueve la carpeta del proyecto, los enlaces de pnpm quedan apuntando a la ruta anterior:
+reinstalar con `CI=true pnpm install --prefer-offline`.
 
 ## Comandos
 
@@ -98,4 +112,6 @@ Usuarios demo (contraseña `reservaitn`): `subdireccion@`, `datd@`, `academica@`
 6. [Matriz de trazabilidad R1–R19](docs/06-trazabilidad.md)
 7. [Estrategia de pruebas](docs/07-pruebas.md)
 8. [Despliegue](docs/08-despliegue.md)
-9. [Decisiones de arquitectura (ADR)](docs/adr/)
+9. [Web: pantallas, componentes y convenciones](docs/09-web.md)
+10. [Decisiones de arquitectura (ADR)](docs/adr/)
+11. [Registro de cambios](CHANGELOG.md)
