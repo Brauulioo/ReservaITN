@@ -1,4 +1,4 @@
-'use client';
+    'use client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, type FormEvent } from 'react';
@@ -140,8 +140,8 @@ function Reservar() {
           <h2>¿Cuándo la necesitas?</h2>
           <div className="form-grid">
             <label>Fecha<input type="date" required value={form.fecha} min={isoLocal(new Date())} max={isoLocal(sumarDias(new Date(), HORARIO.anticipacionMaxDias))} onChange={set('fecha')} /></label>
-            <label>Desde<input type="time" required step={900} value={form.inicio} min={`0${HORARIO.aperturaHora}:00`.slice(-5)} max={`${HORARIO.cierreHora}:00`} onChange={set('inicio')} /></label>
-            <label>Hasta<input type="time" required step={900} value={form.fin} min={`0${HORARIO.aperturaHora}:00`.slice(-5)} max={`${HORARIO.cierreHora}:00`} onChange={set('fin')} /></label>
+            <label>Desde<input type="time" required step={60} value={form.inicio} min={`0${HORARIO.aperturaHora}:00`.slice(-5)} max={`${HORARIO.cierreHora}:00`} onChange={set('inicio')} /></label>
+            <label>Hasta<input type="time" required step={60} value={form.fin} min={`0${HORARIO.aperturaHora}:00`.slice(-5)} max={`${HORARIO.cierreHora}:00`} onChange={set('fin')} /></label>
             <label>Asistentes<input type="number" required min={1} max={500} value={form.asistentes} onChange={set('asistentes')} /></label>
             <label>Sede
               <select value={form.sedeId} onChange={set('sedeId')}>
