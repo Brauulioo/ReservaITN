@@ -13,6 +13,9 @@ interface Bloque { dia: string; jornada: Jornada; horas: number }
 interface Proyeccion { mayorUso: Bloque[]; menorUso: Bloque[]; ranking: Bloque[] }
 interface Indicadores { totalReservas: number; pendientes: number; B6_tiempoPromedioAprobacionHoras: number | null; B3_reservasNoUsadas: number }
 
+/** "14:30": hora de 24 h para el CSV (Excel la reconoce como hora; "02:30 p. m." no). */
+const hora24 = (s: string) => new Date(s).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+
 const JORNADA: Record<Jornada, string> = { MANANA: 'Mañana', TARDE: 'Tarde', VESPERTINA: 'Vespertina' };
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const PRESETS = [
@@ -63,20 +66,24 @@ function Dashboard() {
 
   function exportar() {
     if (!datos) return;
+    // Decimales con coma para que Excel en español los lea como números
+    const num = (n: number) => String(n).replace('.', ',');
+    const pctCsv = (n: number) => `${num(Number((n * 100).toFixed(1)))} %`;
     descargarCsv(`ocupacion_${rango.desde}_${rango.hasta}.csv`, [
       ['Reporte de ocupación ReservaITN', `${rango.desde} a ${rango.hasta}`],
-      ['Índice global', pct(datos.indiceGlobal)],
+      ['Índice global', pctCsv(datos.indiceGlobal)],
+      ['Reservas aprobadas', datos.totalReservas],
       [],
       ['Sala', 'Sede', 'Tipo', 'Horas reservadas', 'Índice de ocupación'],
-      ...datos.porSala.map((s) => [s.codigo, s.sede, s.tipo, String(s.horasReservadas).replace('.', ','), pct(s.indice)]),
+      ...datos.porSala.map((s) => [s.codigo, s.sede, s.tipo === 'LABORATORIO' ? 'Laboratorio' : 'Sala', num(s.horasReservadas), pctCsv(s.indice)]),
     ]);
   }
 
   function exportarDetalle() {
     if (!detalle) return;
     descargarCsv(`detalle_${detalle.sala.codigo}_${rango.desde}_${rango.hasta}.csv`, [
-      ['Fecha', 'Horario', 'Motivo', 'Origen'],
-      ...detalle.reservas.map((r) => [fecha(r.inicio), rangoHora(r.inicio, r.fin), r.motivo, ORIGEN[r.origen] ?? r.origen]),
+      ['Fecha', 'Inicio', 'Término', 'Motivo', 'Origen'],
+      ...detalle.reservas.map((r) => [isoLocal(new Date(r.inicio)), hora24(r.inicio), hora24(r.fin), r.motivo, ORIGEN[r.origen] ?? r.origen]),
     ]);
   }
 

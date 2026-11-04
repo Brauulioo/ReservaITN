@@ -16,6 +16,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 - API: `GET /reservas/mias`, `GET /carreras`, `PATCH /salas/:id`, `PATCH /usuarios/:id`,
   `POST /auth/cambiar-clave`, `PATCH /notificaciones/leidas`.
 - `GET /salas?todas=1` incluye salas desactivadas; `GET /reservas/pendientes` incluye sala y sede.
+- `pnpm --filter @reservaitn/api prisma:seed-demo`: ~10 semanas de reservas de demostración (sin choques,
+  marcadas en su historial) para el dashboard y los reportes. Se ejecuta una sola vez por base.
+- CSV del dashboard con decimales con coma, tipo de sala legible y horas de 24 h (Excel en español los
+  reconoce como números y horas).
 
 ### Cambiado
 - Los avisos de reservas muestran la fecha en formato chileno en vez de ISO.
