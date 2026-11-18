@@ -30,6 +30,12 @@
         }
       ],
       "expo-notifications"
-    ]
+    ],
+    "owner": "jgb-team",
+    "extra": {
+      "eas": {
+        "projectId": "f4742849-6bb5-4eb9-9bae-8f3acf207afe"
+      }
+    }
   }
 }
