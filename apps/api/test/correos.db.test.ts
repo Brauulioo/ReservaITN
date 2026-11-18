@@ -23,6 +23,11 @@ const reservas = new ReservasService(prisma, new NotificacionesService());
 const lunes = lunesAlAzar();
 
 beforeAll(async () => {
+  // Los push que haya en la cola van a un Expo simulado: la prueba nunca sale a internet
+  envios.usarFetch(async (_url, init) => {
+    const mensajes = JSON.parse(String(init?.body ?? '[]')) as unknown[];
+    return new Response(JSON.stringify({ data: mensajes.map(() => ({ status: 'ok' })) }), { status: 200 });
+  });
   await new Promise<void>((ok) => smtp.listen(0, '127.0.0.1', () => ok()));
   puerto = (smtp.server.address() as AddressInfo).port;
 });

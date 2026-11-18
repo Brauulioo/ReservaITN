@@ -113,7 +113,8 @@ export class ReservasService {
         // N4: la aprobación automática también deja registro (sin persona responsable)
         await tx.aprobacion.create({ data: { solicitud_id: solicitud.id, regla_aprobacion_id: regla.id, decision: 'APROBADA' } });
       } else {
-        const aprobadores = await tx.$queryRaw<{ id: string }[]>`SELECT reservas.aprobadores_de(${solicitud.id}::uuid) AS id`;
+        // Quien aprueba según la regla y, además, quien supervisa todo (Subdirección, V013)
+        const aprobadores = await tx.$queryRaw<{ id: string }[]>`SELECT reservas.destinatarios_solicitud(${solicitud.id}::uuid) AS id`;
         await this.notif.notificar(
           tx,
           aprobadores.map((a) => a.id),

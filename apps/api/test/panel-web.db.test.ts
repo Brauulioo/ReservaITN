@@ -52,3 +52,21 @@ describe('historial legible y avisos', () => {
     expect((await avisos.noLeidas(docente)).total).toBe(0);
   });
 });
+
+describe('supervisión de Subdirección (V013)', () => {
+  it('una solicitud de laboratorio avisa al director de la carrera y también a Subdirección', async () => {
+    const lab = await prisma.espacio.findFirstOrThrow({ where: { codigo: 'LAB-INF1' } });
+    const dirInf = await sesion('dir.inf@itn.cl');
+    const lunes = lunesAlAzar();
+    const s = await reservas.solicitar(
+      { espacioId: lab.id, inicio: a(lunes, 2, '10:00'), fin: a(lunes, 2, '11:00'), tipoActividad: 'CLASE', descripcion: 'Laboratorio de prueba', asistentes: 10 },
+      docente,
+    );
+    const avisados = await prisma.notificacion.findMany({ where: { solicitud_id: s.id, evento_codigo: 'SOLICITUD_CREADA' } });
+    const ids = avisados.map((n) => n.usuario_id);
+    expect(ids).toContain(dirInf.id);
+    expect(ids).toContain(sub.id);
+    expect(ids).not.toContain(docente.id);
+  });
+});
+

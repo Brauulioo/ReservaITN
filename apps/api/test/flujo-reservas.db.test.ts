@@ -30,8 +30,11 @@ describe('flujo de una solicitud (R1, R4, R6, D11, D12)', () => {
     expect(s.reserva[0].expira_en).not.toBeNull();
 
     // El director de Informática recibe el aviso; la de Enfermería no
-    const aviso = await prisma.notificacion.findFirst({ where: { solicitud_id: s.id, evento_codigo: 'SOLICITUD_CREADA' } });
-    expect(aviso?.usuario_id).toBe(u.dirInf.id);
+    // (Subdirección también lo recibe por supervisión, V013)
+    const avisos = await prisma.notificacion.findMany({ where: { solicitud_id: s.id, evento_codigo: 'SOLICITUD_CREADA' } });
+    const aviso = avisos.find((n) => n.usuario_id === u.dirInf.id);
+    expect(aviso).toBeDefined();
+    expect(avisos.some((n) => n.usuario_id === u.dirEnf.id)).toBe(false);
     expect(await prisma.envio.count({ where: { notificacion_id: aviso!.id, canal: 'CORREO' } })).toBe(1);
 
     // D12: la pendiente bloquea; otra persona no puede pedir el mismo horario
