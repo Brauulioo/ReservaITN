@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import nodemailer from 'nodemailer';
 import { SMTPServer } from 'smtp-server';
 import { simpleParser, type ParsedMail } from 'mailparser';
@@ -30,6 +30,11 @@ beforeAll(async () => {
   });
   await new Promise<void>((ok) => smtp.listen(0, '127.0.0.1', () => ok()));
   puerto = (smtp.server.address() as AddressInfo).port;
+});
+// Cada prueba procesa solo lo que ella misma encola: lo que otras pruebas dejaron pendiente
+// se posterga un día (la cola es global y crece con cada ejecución en la misma base)
+beforeEach(async () => {
+  await prisma.envio.updateMany({ where: { estado: 'PENDIENTE' }, data: { proximo_intento: new Date(Date.now() + 86_400_000) } });
 });
 afterAll(async () => {
   await new Promise<void>((ok) => smtp.close(() => ok()));

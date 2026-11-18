@@ -29,25 +29,34 @@ export class NotificacionesService {
     const apagado = (u: string, canal: string) => apagadas.some((p) => p.usuario_id === u && p.canal === canal);
     const tienePush = new Set(conDispositivo.map((d) => d.usuario_id));
 
-    for (const usuarioId of unicos) {
-      const canales = [
-        ...(!apagado(usuarioId, 'CORREO') ? (['CORREO'] as const) : []),
-        ...(tienePush.has(usuarioId) && !apagado(usuarioId, 'PUSH') ? (['PUSH'] as const) : []),
-      ];
-      if (apagado(usuarioId, 'APP') && canales.length === 0) continue;
-      await tx.notificacion.create({
-        data: {
-          usuario_id: usuarioId,
-          evento_codigo: evento,
-          titulo,
-          cuerpo,
-          solicitud_id: ref.solicitudId,
-          reserva_id: ref.reservaId,
-          orden_trabajo_id: ref.ordenTrabajoId,
-          envio: { create: canales.map((canal) => ({ canal })) },
-        },
-      });
-    }
+    // Dos consultas en total (avisos y envíos), sin importar cuántos destinatarios haya:
+    // cada viaje a la base cuenta cuando la API y la base están en regiones distintas
+    const destinos = unicos
+      .map((usuarioId) => ({
+        usuarioId,
+        canales: [
+          ...(!apagado(usuarioId, 'CORREO') ? (['CORREO'] as const) : []),
+          ...(tienePush.has(usuarioId) && !apagado(usuarioId, 'PUSH') ? (['PUSH'] as const) : []),
+        ],
+      }))
+      .filter((d) => !(apagado(d.usuarioId, 'APP') && d.canales.length === 0));
+    if (!destinos.length) return;
+    const creadas = await tx.notificacion.createManyAndReturn({
+      data: destinos.map((d) => ({
+        usuario_id: d.usuarioId,
+        evento_codigo: evento,
+        titulo,
+        cuerpo,
+        solicitud_id: ref.solicitudId,
+        reserva_id: ref.reservaId,
+        orden_trabajo_id: ref.ordenTrabajoId,
+      })),
+      select: { id: true, usuario_id: true },
+    });
+    const envios = creadas.flatMap((n) =>
+      (destinos.find((d) => d.usuarioId === n.usuario_id)?.canales ?? []).map((canal) => ({ notificacion_id: n.id, canal })),
+    );
+    if (envios.length) await tx.envio.createMany({ data: envios });
   }
 }
 
