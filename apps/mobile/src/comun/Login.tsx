@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL, api, type Sesion } from '../api';
 import { Aviso, Boton, Campo, colores } from '../ui';
@@ -9,6 +9,7 @@ export function Login({ onIngreso }: { onIngreso: (s: Sesion) => void }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [verClave, setVerClave] = useState(false);
 
   async function ingresar() {
     setError('');
@@ -30,8 +31,12 @@ export function Login({ onIngreso }: { onIngreso: (s: Sesion) => void }) {
             <Text style={{ fontSize: 26, fontWeight: '700', color: '#fff' }}>ReservaITN</Text>
             <Text style={{ color: '#c7d2e8' }}>Instituto Técnico del Norte · Reservas de salas y laboratorios</Text>
           </View>
-          <Campo etiqueta="Correo institucional" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="nombre@itn.cl" />
-          <Campo etiqueta="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
+          <Campo etiqueta="Correo institucional" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" placeholder="nombre@itn.cl" />
+          <Campo etiqueta="Contraseña" value={password} onChangeText={setPassword} secureTextEntry={!verClave}
+            autoCapitalize="none" autoCorrect={false} autoComplete="password" textContentType="password" />
+          <Pressable onPress={() => setVerClave((v) => !v)} hitSlop={8} style={{ alignSelf: 'flex-end', marginTop: -6 }}>
+            <Text style={{ color: colores.institucional, fontWeight: '600' }}>{verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}</Text>
+          </Pressable>
           {!!error && <Aviso ok={false} texto={error} />}
           <Boton titulo="Ingresar" onPress={ingresar} cargando={cargando} deshabilitado={!email || !password} />
           <Text style={{ color: colores.suave, fontSize: 11, textAlign: 'center' }}>Servidor: {API_URL}</Text>
