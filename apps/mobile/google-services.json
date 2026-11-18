@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447218741124",
+    "project_id": "reservaitn",
+    "storage_bucket": "reservaitn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447218741124:android:a64b1fcdd2e6f1ad4e37d1",
+        "android_client_info": {
+          "package_name": "cl.itn.reservaitn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEyjiMeMlk_BrTMwcP8Vw5AfDYfQWEo18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
