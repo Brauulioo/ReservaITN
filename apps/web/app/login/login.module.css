@@ -463,3 +463,12 @@
     transition: none;
   }
 }
+/* Aviso mientras la API en la nube despierta */
+.avisoServidor {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #e7edf7;
+  color: #1c3f7a;
+  font-size: 0.86rem;
+  border: 1px solid #c9d6ec;
+}

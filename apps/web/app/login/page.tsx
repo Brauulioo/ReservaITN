@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-import { api, guardarSesion, mensajeError, type Sesion } from '@/lib/api';
+import { useEffect, useState, type FormEvent } from 'react';
+import { BASE, api, guardarSesion, mensajeError, type Sesion } from '@/lib/api';
 import { Logo } from '@/components/ui';
 import styles from './login.module.css';
 
@@ -44,6 +44,16 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  // En la nube (plan gratis) la API se duerme sin uso: se despierta apenas se abre el login
+  const [servidor, setServidor] = useState<'despertando' | 'listo' | 'sin-conexion'>('despertando');
+
+  useEffect(() => {
+    let vigente = true;
+    fetch(`${BASE}/health`)
+      .then((r) => vigente && setServidor(r.ok ? 'listo' : 'sin-conexion'))
+      .catch(() => vigente && setServidor('sin-conexion'));
+    return () => { vigente = false; };
+  }, []);
 
   async function ingresar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -105,9 +115,12 @@ export default function Login() {
                 </button>
               </div>
             </div>
+            {servidor === 'despertando' && !error && (
+              <div role="status" className={styles.avisoServidor}>Conectando con el servidor… la primera visita del día puede tardar cerca de un minuto.</div>
+            )}
             {error && <div role="alert" className={styles.errorLogin}>{error}</div>}
             <button type="submit" className={styles.botonIngresar} disabled={enviando}>
-              <IconoLogin nombre="arrow" />{enviando ? 'Ingresando…' : 'Iniciar sesión'}
+              <IconoLogin nombre="arrow" />{enviando ? (servidor === 'listo' ? 'Ingresando…' : 'Esperando al servidor…') : 'Iniciar sesión'}
             </button>
           </form>
 

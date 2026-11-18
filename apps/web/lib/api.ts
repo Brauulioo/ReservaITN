@@ -3,7 +3,7 @@
 import type { RolAsignado } from '@reservaitn/shared';
 
 /** URL base de la API; se configura en apps/web/.env.local. */
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+export const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
 /** Respuesta de POST /auth/login: token JWT y usuario con sus roles vigentes y permisos efectivos. */
 export interface Sesion {
