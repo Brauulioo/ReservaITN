@@ -83,8 +83,9 @@ describe('liberación sin check-in (R18)', () => {
                                        VALUES ($1, $2, now() - interval '20 minutes', now() + interval '40 minutes', 'APROBADA') RETURNING id`, [s, m.lab]);
       await c.query(`INSERT INTO reservas.check_in (reserva_id, usuario_id, metodo) VALUES ($1, $2, 'QR')`, [conCheckIn, m.docente.id]);
 
+      // La función recorre toda la base: se miran solo las reservas de esta prueba
       const { rows } = await c.query('SELECT * FROM reservas.liberar_sin_check_in()');
-      expect(rows).toEqual([{ reserva_id: sinCheckIn, solicitante_usuario_id: m.docente.id }]);
+      expect(rows.filter((r) => [sinCheckIn, conCheckIn].includes(r.reserva_id))).toEqual([{ reserva_id: sinCheckIn, solicitante_usuario_id: m.docente.id }]);
       expect(await uno(c, 'SELECT estado::text FROM reservas.reserva WHERE id = $1', [sinCheckIn])).toBe('LIBERADA');
     }));
 });
