@@ -25,7 +25,7 @@ export function CampoFechaHora({ etiqueta, valor, modo, onCambio, minimo }: {
   };
 
   return (
-    <View style={{ gap: 4, flex: 1 }}>
+    <View style={{ gap: 4, flexGrow: 1, flexShrink: 1 }}>
       <Text style={{ color: colores.suave, fontSize: 13 }}>{etiqueta}</Text>
       {Platform.OS === 'ios' ? (
         <DateTimePicker value={valor} mode={modo} display="compact" locale="es-CL" minimumDate={minimo} onChange={alCambiar} style={{ alignSelf: 'flex-start' }} />

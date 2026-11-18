@@ -47,7 +47,7 @@ export function Boton({ titulo, onPress, variante = 'primario', deshabilitado, c
 
 export function Campo({ etiqueta, ...props }: TextInputProps & { etiqueta: string }) {
   return (
-    <View style={{ gap: 4, flex: 1 }}>
+    <View style={{ gap: 4, flexGrow: 1, flexShrink: 1 }}>
       <Text style={s.etiqueta}>{etiqueta}</Text>
       <TextInput style={s.input} placeholderTextColor={colores.suave} {...props} />
     </View>
