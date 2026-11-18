@@ -6,6 +6,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 ## [Sin publicar] — hacia H4 (13/11/2026) y H5 (27/11/2026)
 
 ### Agregado
+- **Publicación en la nube por servicios:** web en Vercel, API en Render (aplica migraciones al iniciar),
+  PostgreSQL en Neon y app Android compilada con EAS (`@jgb-team/reservaitn`).
+- **Notificaciones push en Android** con Expo Push y Firebase; el login de la web despierta la API.
+- **Supervisión de Subdirección (V013):** recibe el aviso de todas las solicitudes, además del aprobador.
+- **Datos de demostración (D002):** ~880 reservas realistas que se cargan una vez en una base nueva.
 - **Web con la identidad del ITN** (diseño de Braulio Campos, integrado sobre la API v1): menú lateral según
   permisos, modo oscuro, vista de celular, impresión, login con fotografía del campus y avisos flotantes
   ([docs/09-web.md](docs/09-web.md)).
@@ -31,6 +36,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 - PostgreSQL local publicado en el puerto 5434 por defecto para no chocar con instalaciones de Windows.
 
 ### Corregido
+- Solicitudes con "Error interno" cuando la API y la base están en regiones distintas (transacciones
+  de hasta 20 s y avisos en una sola consulta).
+- App Android: campos aplastados en el login y mayúscula automática en la contraseña.
 - El rango del dashboard incluye el último día y muestra todas las reservas del período.
 - Mensajes claros cuando la base de datos no está disponible.
 
