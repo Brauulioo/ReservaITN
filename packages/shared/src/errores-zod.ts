@@ -5,10 +5,10 @@ import { z } from 'zod';
  * Se registra al importar @reservaitn/shared, así la API, la web y la app muestran lo mismo.
  * (Zod 4: `z.config({ customError })`; un mensaje puesto en el esquema tiene prioridad.)
  */
-const tamano = (origen: string, limite: number | bigint, minimo: boolean) => {
+const tamano = (origen: string, limite: number | bigint, minimo: boolean, inclusivo = true) => {
   if (origen === 'string') return `${minimo ? 'Mínimo' : 'Máximo'} ${limite} caracteres`;
   if (origen === 'array' || origen === 'set') return minimo ? `Debe tener al menos ${limite} elemento(s)` : `Debe tener como máximo ${limite} elemento(s)`;
-  return `Debe ser ${minimo ? 'mayor' : 'menor'} o igual a ${limite}`;
+  return `Debe ser ${minimo ? 'mayor' : 'menor'}${inclusivo ? ' o igual a' : ' que'} ${limite}`;
 };
 
 z.config({
@@ -27,9 +27,9 @@ z.config({
       case 'invalid_value':
         return `Valor inválido. Opciones: ${issue.values.map(String).join(', ')}`;
       case 'too_small':
-        return tamano(issue.origin, issue.minimum, true);
+        return tamano(issue.origin, issue.minimum, true, issue.inclusive !== false);
       case 'too_big':
-        return tamano(issue.origin, issue.maximum, false);
+        return tamano(issue.origin, issue.maximum, false, issue.inclusive !== false);
       default:
         return undefined;
     }
