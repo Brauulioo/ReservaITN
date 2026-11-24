@@ -1,4 +1,4 @@
-import { Body, ConflictException, Controller, ForbiddenException, Get, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { contenidoQr, espacioCreateSchema, espacioUpdateSchema, tienePermiso, type EspacioCreate, type EspacioUpdate } from '@reservaitn/shared';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../comun/prisma.service';
@@ -44,6 +44,7 @@ class RecursosController {
     @Query('todos') todos?: string,
   ) {
     if (todos === 'true' && !tienePermiso(u.permisos, 'recurso:gestionar')) throw new ForbiddenException('Sin permiso');
+    if (sedeId && !/^[0-9a-f-]{36}$/i.test(sedeId)) throw new BadRequestException('sedeId: Identificador inválido');
     return this.prisma.espacio.findMany({
       where: {
         ...(todos === 'true' ? {} : { activo: true }),

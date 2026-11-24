@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 
 ## [Sin publicar] — hacia H4 (13/11/2026) y H5 (27/11/2026)
 
+### Seguridad
+- **Dependencias actualizadas por avisos de seguridad:** Next.js 16.4.6; NestJS 11.2 (Express 5,
+  multer 2, body-parser y path-to-regexp corregidos); nodemailer 10.5; zod 4.6 en API, web, app y
+  `shared` (mensajes en español migrados a `z.config`); `uuid` 11 dentro de exceljs. Quedan solo avisos
+  menores en herramientas de compilación de Expo, que no forman parte de la app instalada.
+- `GET /espacios` responde 400 (no 500) si `sedeId` no es un identificador válido.
+
 ### Agregado
 - **Días no disponibles (V014):** no se reserva sábado ni domingo; las vacaciones de verano
   (25 de diciembre al 1 de marzo) quedan bloqueadas cada año. Subdirección agrega períodos por días

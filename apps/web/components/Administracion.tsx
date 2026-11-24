@@ -40,8 +40,8 @@ const NOMBRE_ROL: Record<Rol, string> = {
   ASEO_MANTENCION: 'Aseo y mantención',
   ADMIN_TI: 'Encargado de informática',
 };
-const errores = (r: { success: false; error: { issues: { path: (string | number)[]; message: string }[] } }) =>
-  [...new Set(r.error.issues.map((i) => `${i.path.join('.') || 'datos'}: ${i.message}`))].join(' · ');
+const errores = (r: { success: false; error: { issues: readonly { path: readonly PropertyKey[]; message: string }[] } }) =>
+  [...new Set(r.error.issues.map((i) => `${i.path.map(String).join('.') || 'datos'}: ${i.message}`))].join(' · ');
 
 function Dialogo({ titulo, children, onCerrar }: { titulo: string; children: ReactNode; onCerrar: () => void }) {
   return (

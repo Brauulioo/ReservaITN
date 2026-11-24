@@ -149,7 +149,7 @@ export const decisionReservaSchema = z.object({
 });
 /** Un rechazo exige motivo (restricción aprobacion_rechazo_con_motivo). */
 export const rechazoSchema = z.object({
-  comentario: z.string({ required_error: 'Indique el motivo del rechazo' }).trim().min(3, 'Indique el motivo del rechazo').max(300),
+  comentario: z.string({ error: 'Indique el motivo del rechazo' }).trim().min(3, 'Indique el motivo del rechazo').max(300),
 });
 /** Cancelar la reserva de otra persona exige motivo (lo valida también la base, V011). */
 export const cancelacionSchema = z.object({
@@ -188,14 +188,14 @@ export const filaPlanificacionSchema = z.object({
   asignatura: z.string().trim().min(1),
   docenteRut: rutSchema.optional(),
   diaSemana: z.coerce
-    .number({ invalid_type_error: 'Debe ser un número del 1 (lunes) al 5 (viernes)' })
+    .number({ error: 'Debe ser un número del 1 (lunes) al 5 (viernes)' })
     .int()
     .min(1, 'Debe ser un número del 1 (lunes) al 5 (viernes)')
     .max(5, 'Debe ser un número del 1 (lunes) al 5 (viernes)'),
   horaInicio: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:MM'),
   horaFin: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:MM'),
   inscritos: z.coerce
-    .number({ invalid_type_error: 'Debe ser un número' })
+    .number({ error: 'Debe ser un número' })
     .int('Debe ser un número entero')
     .nonnegative('No puede ser negativo'),
 });
