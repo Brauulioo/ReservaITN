@@ -88,8 +88,9 @@ compartidos entre pantallas van en `components/`.
   íconos; al pasar el mouse, o al navegar con el teclado, se despliega a 284 px **por encima** del
   contenido (sin mover la página). Es solo CSS (`.sidebar:hover`, `:focus-within`) y respeta
   "reducir movimiento". En celular se abre con el botón de menú, como antes.
-- **Inicio de Subdirección:** quien tiene `dashboard:ver` ve en `/inicio` los 4 gráficos de prioridad
-  alta en una sola ventana (diseño elegido: boceto A, panel en cuadrícula):
+- **Inicio de Subdirección:** quien tiene `dashboard:ver` ve en `/inicio` un banner de bienvenida con la
+  foto del campus, su rol, la fecha y los filtros dentro (boceto A2), y debajo los 4 gráficos de
+  prioridad alta en una sola ventana (boceto A, panel en cuadrícula):
   ocupación por sala (clic → calendario de la sala), mapa de calor día × hora, reservas que no se
   usaron (las 8 salas con más pérdidas) y capacidad libre por jornada, más 4 indicadores.
   Filtros: período (esta semana, este mes, mes anterior, próximas 4 semanas), sede y tipo de

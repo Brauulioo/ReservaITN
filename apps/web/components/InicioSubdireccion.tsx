@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { usePanel } from './Panel';
 import { Cargando, Icono, useDatos } from './ui';
+import { rolPrincipal } from '@/lib/formato';
 
 interface Inicio {
   salas: number;
@@ -51,6 +52,12 @@ function leerFiltros(): { periodo: Periodo; sedeId: string; tipo: string } {
   }
 }
 
+/** "Martes, 24 de noviembre" */
+function hoyTexto() {
+  const t = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 function saludo() {
   const h = new Date().getHours();
   return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
@@ -76,11 +83,20 @@ export function InicioSubdireccion() {
 
   return (
     <div className="inicio-sub">
-      <div className="inicio-sub-cab">
-        <div>
-          <h1>{saludo()}, {nombre}</h1>
-          <p className="muted">Así se usan las salas del ITN · {etiquetaPeriodo} ({desde.toLocaleDateString('es-CL')} – {new Date(hasta.getTime() - 1).toLocaleDateString('es-CL')})</p>
-        </div>
+      <section className="inicio-banner" aria-label="Bienvenida">
+        <img className="inicio-banner-foto" src="/itn-campus-banner.jpg" alt="" aria-hidden="true" />
+        <div className="inicio-banner-velo" aria-hidden="true" />
+        <div className="inicio-banner-cuerpo">
+          <div className="inicio-banner-texto">
+            <span className="inicio-banner-miga">Instituto Técnico del Norte</span>
+            <h1>¡{saludo()}, {nombre}!</h1>
+            <p>Así se usan las salas del ITN · {etiquetaPeriodo} ({desde.toLocaleDateString('es-CL')} – {new Date(hasta.getTime() - 1).toLocaleDateString('es-CL')})</p>
+            <div className="inicio-banner-chips">
+              <span><Icono n="usuarios" t={14} />{rolPrincipal(sesion.usuario.roles)}</span>
+              <span><Icono n="calendario" t={14} />{hoyTexto()}</span>
+            </div>
+          </div>
+          <div className="inicio-banner-filtros">
         <form className="inicio-sub-filtros" aria-label="Filtros del inicio" onSubmit={(e) => e.preventDefault()}>
           <label>Período
             <select id="inicio-periodo" value={filtros.periodo} onChange={cambiar('periodo')}>
@@ -100,7 +116,9 @@ export function InicioSubdireccion() {
             </select>
           </label>
         </form>
-      </div>
+          </div>
+        </div>
+      </section>
 
       {error && <div className="alerta error"><Icono n="alerta" />{error}</div>}
       {!d ? !error && <div className="card"><Cargando filas={6} /></div> : <Contenido d={d} />}
