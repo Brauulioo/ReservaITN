@@ -55,7 +55,7 @@ async function procesarHasta(envioId: string) {
 
 /** Crea una solicitud del docente y devuelve el envío de correo al director de Informática. */
 async function solicitudConAviso(dia: number) {
-  const [docente, dirInf] = await Promise.all([sesion('docente@itn.cl'), sesion('dir.inf@itn.cl')]);
+  const [docente, dirInf] = await Promise.all([sesion('andrea.munoz@itn.cl'), sesion('matias.soto@itn.cl')]);
   const s = await reservas.solicitar(
     { espacioId: (await espacio('A-201')).id, inicio: a(lunes, dia, '08:55'), fin: a(lunes, dia, '10:10'), tipoActividad: 'CLASE', descripcion: 'Clase de recuperación', asistentes: 20 },
     docente,
@@ -73,13 +73,13 @@ describe('envío de correos (R6)', () => {
     expect(final).toMatchObject({ estado: 'ENVIADO', intentos: 1, ultimo_error: null });
     expect(final.enviado_en).not.toBeNull();
 
-    const correo = recibidos.find((m) => (m.to as { text: string }).text.includes('dir.inf@itn.cl') && m.text?.includes('Clase de recuperación'))!;
+    const correo = recibidos.find((m) => (m.to as { text: string }).text.includes('matias.soto@itn.cl') && m.text?.includes('Clase de recuperación'))!;
     expect(correo).toBeDefined();
     expect(correo.subject).toBe('ReservaITN · Nueva solicitud de reserva');
     expect(correo.from?.text).toContain('ReservaITN');
     expect(correo.html).toContain('Revisar solicitud');
     expect(correo.html).toContain('http://localhost:3000/aprobaciones');
-    expect(correo.text).toContain('Hola, Director:');
+    expect(correo.text).toContain('Hola, Matías:');
   });
 
   it('si el servidor de correo no responde, programa un reintento con espera creciente', async () => {
@@ -122,7 +122,7 @@ describe('envío de correos (R6)', () => {
 
 describe('notificaciones push (R6)', () => {
   it('envía el aviso a los celulares del usuario por Expo y elimina los que ya no existen', async () => {
-    const dirInf = await sesion('dir.inf@itn.cl');
+    const dirInf = await sesion('matias.soto@itn.cl');
     const sufijo = Date.now();
     await prisma.dispositivo.createMany({
       data: [

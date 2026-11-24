@@ -1,4 +1,5 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, Get, Header, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { z } from 'zod';
 import { inspeccionSchema, reporteDanioSchema } from '@reservaitn/shared';
 import { PrismaService } from '../comun/prisma.service';
@@ -29,6 +30,15 @@ const TRANSICIONES_ORDEN: Record<string, string[]> = {
   RESUELTA: [],
   CANCELADA: [],
 };
+/** Foto del daño: máximo 5 MB (la app la reduce a unos 300 KB antes de enviarla). */
+const MAX_FOTO = 5 * 1024 * 1024;
+/** Tipo real de la imagen según sus primeros bytes: no se confía en el tipo que declara el cliente. */
+function tipoDeImagen(b: Buffer): 'image/jpeg' | 'image/png' | 'image/webp' | null {
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (b.length > 12 && b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  return null;
+}
 const nombre = (p: { nombres: string; apellido_paterno: string }) => `${p.nombres} ${p.apellido_paterno}`;
 
 /** Mantención: inspecciones, daños y órdenes de trabajo (R15, R17 / E12 / WBS 1.4.10). */
@@ -73,24 +83,50 @@ class MantencionController {
     return { inspeccionId: insp.id, diferencias };
   }
 
+  /**
+   * Reporte de daño con foto opcional (multipart: campos + archivo `foto`; también acepta JSON sin foto).
+   * El aviso llega únicamente a Operaciones; la foto se ve desde la bandeja de daños.
+   */
   @RequierePermiso('danio:reportar')
   @Post('danios')
-  reportar(@Body(new ZodPipe(reporteDanioSchema)) dto: z.infer<typeof reporteDanioSchema>, @UsuarioActual() u: UsuarioSesion) {
+  @UseInterceptors(FileInterceptor('foto', { limits: { fileSize: MAX_FOTO, files: 1 } }))
+  reportar(
+    @Body(new ZodPipe(reporteDanioSchema)) dto: z.infer<typeof reporteDanioSchema>,
+    @UsuarioActual() u: UsuarioSesion,
+    @UploadedFile() foto?: Express.Multer.File,
+  ) {
+    const mime = foto ? tipoDeImagen(foto.buffer) : null;
+    if (foto && !mime) throw new BadRequestException('La foto debe ser una imagen JPG, PNG o WEBP');
     return this.prisma.conActor(u.id, async (tx) => {
       const r = await tx.reporte_danio.create({
         data: { espacio_id: dto.espacioId, item_id: dto.itemId, reportado_por_usuario_id: u.id, descripcion: dto.descripcion, severidad: dto.severidad },
         include: { espacio: { select: { codigo: true } } },
       });
+      if (foto && mime) {
+        await tx.reporte_danio_foto.create({
+          data: { reporte_danio_id: r.id, clave_almacenamiento: `db/${r.id}`, tipo_mime: mime, tamano_bytes: foto.size, contenido: foto.buffer },
+        });
+      }
       const operaciones = await tx.usuario_rol.findMany({ where: { rol: { codigo: 'OPERACIONES' } }, select: { usuario_id: true } });
       await this.notif.notificar(
         tx,
         operaciones.map((o) => o.usuario_id),
         'DANIO_REPORTADO',
         `Daño en ${r.espacio.codigo} (${dto.severidad})`,
-        dto.descripcion,
+        `${dto.descripcion}${foto ? ' · con foto adjunta' : ''}`,
       );
-      return r;
+      return { ...r, conFoto: !!foto };
     });
+  }
+
+  /** Foto adjunta a un reporte (solo quienes gestionan daños). */
+  @RequierePermiso('danio:gestionar')
+  @Get('danios/:id/foto')
+  @Header('Cache-Control', 'private, max-age=3600')
+  async fotoDelDanio(@Param('id', ParseUUIDPipe) id: string) {
+    const f = await this.prisma.reporte_danio_foto.findFirst({ where: { reporte_danio_id: id, contenido: { not: null } }, select: { contenido: true, tipo_mime: true } });
+    if (!f?.contenido) throw new NotFoundException('Este reporte no tiene foto');
+    return new StreamableFile(f.contenido, { type: f.tipo_mime });
   }
 
   @RequierePermiso('danio:gestionar')
@@ -103,6 +139,7 @@ class MantencionController {
         item: { select: { nombre: true } },
         usuario: { select: { persona: { select: { nombres: true, apellido_paterno: true } } } },
         orden_trabajo: { select: { id: true, estado: true } },
+        reporte_danio_foto: { select: { id: true } },
       },
       orderBy: { creado_en: 'desc' },
       take: 200,

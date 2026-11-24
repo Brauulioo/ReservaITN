@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { File } from 'expo-file-system';
 import type { RolAsignado } from '@reservaitn/shared';
 
 /**
@@ -51,7 +52,8 @@ export async function api<T>(ruta: string, init: RequestInit = {}): Promise<T> {
     res = await fetch(`${API_URL}${ruta}`, {
       ...init,
       headers: {
-        'content-type': 'application/json',
+        // Con FormData (foto adjunta) fetch fija solo el tipo multipart con su separador
+        ...(init.body instanceof FormData ? {} : { 'content-type': 'application/json' }),
         ...(actual ? { authorization: `Bearer ${actual.token}` } : {}),
       },
     });
@@ -73,3 +75,14 @@ export async function api<T>(ruta: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const post = <T,>(ruta: string, datos: unknown = {}) => api<T>(ruta, { method: 'POST', body: JSON.stringify(datos) });
+
+/** Envía campos y un archivo (foto) como multipart. `archivo.uri` es el de la cámara o galería. */
+export async function postFormulario<T>(ruta: string, campos: Record<string, string | undefined>, archivo?: { campo: string; uri: string; tipo: string; nombre: string }) {
+  const f = new FormData();
+  for (const [k, v] of Object.entries(campos)) if (v !== undefined) f.append(k, v);
+  if (archivo) {
+    // El fetch de este SDK no admite { uri, name, type }: el archivo se adjunta como File de expo-file-system
+    f.append(archivo.campo, new File(archivo.uri) as unknown as Blob, archivo.nombre);
+  }
+  return api<T>(ruta, { method: 'POST', body: f });
+}

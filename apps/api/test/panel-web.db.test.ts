@@ -56,7 +56,7 @@ describe('historial legible y avisos', () => {
 describe('supervisión de Subdirección (V013)', () => {
   it('una solicitud de laboratorio avisa al director de la carrera y también a Subdirección', async () => {
     const lab = await prisma.espacio.findFirstOrThrow({ where: { codigo: 'LAB-INF1' } });
-    const dirInf = await sesion('dir.inf@itn.cl');
+    const dirInf = await sesion('matias.soto@itn.cl');
     const lunes = lunesAlAzar();
     const s = await reservas.solicitar(
       { espacioId: lab.id, inicio: a(lunes, 2, '10:00'), fin: a(lunes, 2, '11:00'), tipoActividad: 'CLASE', descripcion: 'Laboratorio de prueba', asistentes: 10 },

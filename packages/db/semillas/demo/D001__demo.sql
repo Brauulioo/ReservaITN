@@ -75,15 +75,15 @@ ON CONFLICT (codigo) DO NOTHING;
 
 INSERT INTO seguridad.persona (tipo_documento, numero_documento, nombres, apellido_paterno, email)
 VALUES
-  ('RUT', '11111111-1', 'Pedro',     'Fernández',           'subdireccion@itn.cl'),
-  ('RUT', '22222222-2', 'Francisca', 'Urrutia',             'datd@itn.cl'),
-  ('RUT', '33333333-3', 'Dirección', 'Académica',           'academica@itn.cl'),
-  ('RUT', '44444444-4', 'Director',  'Informática',         'dir.inf@itn.cl'),
-  ('RUT', '55555555-5', 'Docente',   'Demo',                'docente@itn.cl'),
-  ('RUT', '66666666-6', 'Estudiante','Demo',                'estudiante@itn.cl'),
-  ('RUT', '77777777-7', 'Encargado', 'Operaciones',         'operaciones@itn.cl'),
-  ('RUT', '88888888-8', 'Personal',  'Aseo',                'aseo@itn.cl'),
-  ('RUT', '99999999-9', 'Directora', 'Enfermería',          'dir.enf@itn.cl')
+  ('RUT', '11111111-1', 'Pedro',     'Fernández',           'pedro.fernandez@itn.cl'),
+  ('RUT', '22222222-2', 'Francisca', 'Urrutia',             'francisca.urrutia@itn.cl'),
+  ('RUT', '33333333-3', 'Camila',    'Rojas',               'camila.rojas@itn.cl'),      -- Dirección Académica
+  ('RUT', '44444444-4', 'Matías',    'Soto',                'matias.soto@itn.cl'),       -- Director de Informática
+  ('RUT', '55555555-5', 'Andrea',    'Muñoz',               'andrea.munoz@itn.cl'),      -- Docente de Informática
+  ('RUT', '66666666-6', 'Sofía',     'Vargas',              'sofia.vargas@itn.cl'),      -- Estudiante de Informática
+  ('RUT', '77777777-7', 'Jorge',     'Araya',               'jorge.araya@itn.cl'),       -- Operaciones
+  ('RUT', '88888888-8', 'Rosa',      'Contreras',           'rosa.contreras@itn.cl'),    -- Aseo y mantención
+  ('RUT', '99999999-9', 'Valentina', 'Pizarro',             'valentina.pizarro@itn.cl')  -- Directora de Enfermería
 ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
 
 INSERT INTO seguridad.usuario (persona_id, password_hash)
@@ -93,16 +93,16 @@ ON CONFLICT (persona_id) DO NOTHING;
 INSERT INTO seguridad.usuario_rol (usuario_id, rol_id, carrera_id)
 SELECT u.id, r.id, c.id
   FROM (VALUES
-    ('subdireccion@itn.cl', 'SUBDIRECCION', NULL),
-    ('datd@itn.cl',         'DATD', NULL),
-    ('academica@itn.cl',    'DIRECCION_ACADEMICA', NULL),
-    ('dir.inf@itn.cl',      'DIRECTOR_CARRERA', 'INF'),
-    ('dir.inf@itn.cl',      'DOCENTE', 'INF'),  -- un director también es docente (D2)
-    ('docente@itn.cl',      'DOCENTE', 'INF'),
-    ('estudiante@itn.cl',   'ESTUDIANTE', NULL),
-    ('operaciones@itn.cl',  'OPERACIONES', NULL),
-    ('aseo@itn.cl',         'ASEO_MANTENCION', NULL),
-    ('dir.enf@itn.cl',      'DIRECTOR_CARRERA', 'ENF')
+    ('pedro.fernandez@itn.cl', 'SUBDIRECCION', NULL),
+    ('francisca.urrutia@itn.cl',         'DATD', NULL),
+    ('camila.rojas@itn.cl',    'DIRECCION_ACADEMICA', NULL),
+    ('matias.soto@itn.cl',      'DIRECTOR_CARRERA', 'INF'),
+    ('matias.soto@itn.cl',      'DOCENTE', 'INF'),  -- un director también es docente (D2)
+    ('andrea.munoz@itn.cl',      'DOCENTE', 'INF'),
+    ('sofia.vargas@itn.cl',   'ESTUDIANTE', NULL),
+    ('jorge.araya@itn.cl',  'OPERACIONES', NULL),
+    ('rosa.contreras@itn.cl',         'ASEO_MANTENCION', NULL),
+    ('valentina.pizarro@itn.cl',      'DIRECTOR_CARRERA', 'ENF')
   ) AS v(email, rol, carrera)
   JOIN seguridad.persona p  ON p.email = v.email
   JOIN seguridad.usuario u  ON u.persona_id = p.id
@@ -117,5 +117,5 @@ SELECT p.id, oc.id, pa.id
   JOIN academico.carrera c ON c.id = oc.carrera_id AND c.codigo = 'INF'
   JOIN institucion.sede s  ON s.id = oc.sede_id AND s.codigo = 'CENTRO',
        academico.periodo_academico pa
- WHERE p.email = 'estudiante@itn.cl' AND oc.jornada = 'DIURNA' AND pa.codigo = '2026-2'
+ WHERE p.email = 'sofia.vargas@itn.cl' AND oc.jornada = 'DIURNA' AND pa.codigo = '2026-2'
 ON CONFLICT DO NOTHING;

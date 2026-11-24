@@ -69,7 +69,7 @@ describe('reporte Excel', () => {
     const [aprobada, pendiente, cancelada] = filas;
     const inicio = aprobada[1] as Date;
     expect([inicio.getUTCHours(), inicio.getUTCMinutes()]).toEqual([8, 55]); // se lee 08:55 en Excel
-    expect(aprobada.slice(11, 13)).toEqual(['Aprobada', 'Director Informática']);
+    expect(aprobada.slice(11, 13)).toEqual(['Aprobada', 'Matías Soto']);
     expect(pendiente[11]).toBe('Pendiente');
     expect(cancelada[11]).toBe('Cancelada');
     expect(cancelada.slice(15, 17)).toEqual(['Pedro Fernández', 'Evento institucional en la sala']);

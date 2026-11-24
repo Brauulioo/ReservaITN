@@ -8,13 +8,13 @@ import styles from './login.module.css';
 
 /** Cuentas de demostración (packages/db/semillas/demo): completan correo y contraseña. */
 const DEMO = [
-  ['subdireccion@itn.cl', 'Subdirección'],
-  ['dir.inf@itn.cl', 'Director carrera'],
-  ['docente@itn.cl', 'Docente'],
-  ['estudiante@itn.cl', 'Estudiante'],
-  ['operaciones@itn.cl', 'Operaciones'],
-  ['aseo@itn.cl', 'Aseo'],
-  ['datd@itn.cl', 'DATD'],
+  ['pedro.fernandez@itn.cl', 'Pedro · Subdirección'],
+  ['matias.soto@itn.cl', 'Matías · Director carrera'],
+  ['andrea.munoz@itn.cl', 'Andrea · Docente'],
+  ['sofia.vargas@itn.cl', 'Sofía · Estudiante'],
+  ['jorge.araya@itn.cl', 'Jorge · Operaciones'],
+  ['rosa.contreras@itn.cl', 'Rosa · Aseo'],
+  ['francisca.urrutia@itn.cl', 'Francisca · DATD'],
 ] as const;
 const CLAVE_DEMO = 'reservaitn';
 
@@ -40,7 +40,7 @@ function IconoLogin({ nombre }: { nombre: NombreIcono }) {
 export default function Login() {
   const router = useRouter();
   const [error, setError] = useState('');
-  const [email, setEmail] = useState('subdireccion@itn.cl');
+  const [email, setEmail] = useState('pedro.fernandez@itn.cl');
   const [password, setPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);

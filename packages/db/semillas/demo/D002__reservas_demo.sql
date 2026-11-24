@@ -39,15 +39,15 @@ BEGIN
   END IF;
 
   SELECT u.id INTO sub FROM seguridad.usuario u JOIN seguridad.persona p ON p.id = u.persona_id
-   WHERE p.email = 'subdireccion@itn.cl';
+   WHERE p.email = 'pedro.fernandez@itn.cl';
   SELECT array_agg(u.id ORDER BY p.email) INTO solicitantes FROM seguridad.usuario u
     JOIN seguridad.persona p ON p.id = u.persona_id
-   WHERE p.email IN ('docente@itn.cl', 'dir.inf@itn.cl', 'academica@itn.cl', 'dir.enf@itn.cl', 'subdireccion@itn.cl');
+   WHERE p.email IN ('andrea.munoz@itn.cl', 'matias.soto@itn.cl', 'camila.rojas@itn.cl', 'valentina.pizarro@itn.cl', 'pedro.fernandez@itn.cl');
   SELECT array_agg(id ORDER BY codigo) INTO espacios FROM institucion.espacio
    WHERE codigo IN ('A-101', 'A-102', 'A-201', 'LAB-INF1', 'LAB-ENF', 'N-101', 'AUD-1', 'EST-1') AND activo;
   SELECT array_agg(id ORDER BY codigo) INTO tipos FROM reservas.tipo_actividad WHERE codigo IN ('CLASE', 'REUNION', 'EVENTO');
   SELECT u.id INTO operaciones FROM seguridad.usuario u JOIN seguridad.persona p ON p.id = u.persona_id
-   WHERE p.email = 'operaciones@itn.cl';
+   WHERE p.email = 'jorge.araya@itn.cl';
   IF sub IS NULL OR solicitantes IS NULL OR espacios IS NULL OR tipos IS NULL THEN
     RAISE NOTICE 'Faltan datos base de demostración (D001); no se cargan reservas';
     RETURN;

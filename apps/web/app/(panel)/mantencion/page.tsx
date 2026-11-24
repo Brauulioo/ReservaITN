@@ -1,8 +1,9 @@
 'use client';
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { api } from '@/lib/api';
+import { api, imagenProtegida } from '@/lib/api';
 import { Cabecera } from '@/components/ui';
 import { ConPermiso } from '@/components/Panel';
+import { SelectorDia } from '@/components/SelectorDia';
 
 interface Persona { nombres: string; apellido_paterno: string }
 interface Danio {
@@ -14,6 +15,7 @@ interface Danio {
   item: { nombre: string } | null;
   usuario: { persona: Persona };
   orden_trabajo: { id: string; estado: string } | null;
+  reporte_danio_foto: { id: string }[];
 }
 interface Orden {
   id: string;
@@ -27,6 +29,23 @@ interface Orden {
   usuario: { persona: Persona } | null;
   reporte_danio: { id: string; descripcion: string; severidad: string }[];
   solicitud: { reserva: { inicio: string; fin: string; estado: string }[] } | null;
+}
+/** Foto que adjuntó Aseo al reportar el daño: se pide con la sesión y se abre bajo la descripción. */
+function FotoDanio({ id }: { id: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  async function alternar() {
+    if (url) return setUrl(null);
+    try { setUrl(await imagenProtegida(`/mantencion/danios/${id}/foto`)); setError(''); } catch (e) { setError((e as Error).message); }
+  }
+  return (
+    <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 6 }}>
+      <button type="button" className="sec chico" onClick={alternar}>{url ? 'Ocultar foto' : '📷 Ver foto'}</button>
+      {error && <span className="error" style={{ marginLeft: 8 }}>{error}</span>}
+      {url && <a href={url} target="_blank" rel="noreferrer"><img src={url} alt="Foto del daño reportado" style={{ display: 'block', marginTop: 8, maxWidth: 320, width: '100%', borderRadius: 10, border: '1px solid var(--border-strong)' }} /></a>}
+    </div>
+  );
 }
 interface Personal { id: string; nombre: string }
 interface Espacio { id: string; codigo: string; nombre: string }
@@ -128,7 +147,7 @@ function Mantencion() {
                       <td>{fecha(d.creado_en)}</td>
                       <td><strong>{d.espacio.codigo}</strong></td>
                       <td><span className={`estado estado-${SEVERIDAD[d.severidad]}`}>{d.severidad.toLowerCase()}</span></td>
-                      <td>{d.descripcion}{d.item && <div className="etiqueta">{d.item.nombre}</div>}</td>
+                      <td>{d.descripcion}{d.item && <div className="etiqueta">{d.item.nombre}</div>}{d.reporte_danio_foto.length > 0 && <FotoDanio id={d.id} />}</td>
                       <td>{nombre(d.usuario.persona)}</td>
                     </tr>
                   ))}
@@ -325,7 +344,7 @@ function FormOrden({ preventiva, espacio, reporteIds, espacios, personal, onCerr
         </label>
         {f.bloquear && (
           <div className="campos">
-            <label>Día<input type="date" value={f.fecha} min={hoy()} onChange={(e) => cambiar('fecha', e.target.value)} /></label>
+            <SelectorDia valor={f.fecha} onCambio={(d) => cambiar('fecha', d)} />
             <label>Desde<input type="time" step={60} value={f.desde} onChange={(e) => cambiar('desde', e.target.value)} /></label>
             <label>Hasta<input type="time" step={60} value={f.hasta} onChange={(e) => cambiar('hasta', e.target.value)} /></label>
           </div>

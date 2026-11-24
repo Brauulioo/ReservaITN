@@ -13,6 +13,21 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 - `GET /espacios` responde 400 (no 500) si `sedeId` no es un identificador válido.
 
 ### Agregado
+- **Foto en el reporte de daños (V015):** Aseo puede adjuntar una foto (cámara o galería, reducida a 1280 px en el
+  celular) además de la descripción. El aviso llega solo a Operaciones, que ve la foto desde Mantención → Daños
+  reportados. La imagen se guarda en la base (`reporte_danio_foto.contenido`); la API valida el tipo real del archivo
+  (JPG, PNG o WEBP, máx. 5 MB) y `GET /mantencion/danios/:id/foto` exige el permiso `danio:gestionar`. Requiere
+  compilar un APK nuevo (módulos nativos `expo-image-picker` y `expo-image-manipulator`).
+- **Cuentas de demostración con nombre propio** (`pedro.fernandez@itn.cl`, `francisca.urrutia@itn.cl`,
+  `matias.soto@itn.cl`, `andrea.munoz@itn.cl`, etc.) en lugar de `subdireccion@itn.cl`, `docente@itn.cl`...
+  La semilla `D003` renombra las cuentas ya cargadas en una base existente, conservando roles y reservas.
+  La contraseña sigue siendo `reservaitn`.
+- **Dashboard con gráficas que cambian de tipo** (barras, líneas y dona) y **selector de día** que deja en gris
+  fines de semana, vacaciones, días bloqueados y días pasados al reservar desde la web. El mismo calendario se
+  usa ahora en "Hasta el día" (repetición), en el bloqueo de sala de Mantención, en "Días no disponibles" y en
+  el rango del Dashboard (en estos dos últimos, modo libre: los días sin clases se ven en gris pero se pueden
+  elegir). Las tarjetas del Dashboard (gráficas y tablas) tienen una flecha para ocultar sus datos y
+  desplegarlos de nuevo. La app móvil estrena `CampoDia` para "Día" y "Repetir hasta" al reservar, con la misma regla.
 - **App móvil para Subdirección (v1.2.0):** panel con gráficos animados y tocables (ocupación por
   sala, uso por hora, mapa de calor, capacidad por jornada, reservas por estado y no usadas), con
   “hoy” por defecto, filtros de período, sede y tipo, y actualización sola cada minuto; **Solicitudes**

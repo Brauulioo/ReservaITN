@@ -4,6 +4,7 @@ import { HORARIO, reservaCreateSchema } from '@reservaitn/shared';
 import { api } from '@/lib/api';
 import { Cabecera } from '@/components/ui';
 import { ConPermiso } from '@/components/Panel';
+import { SelectorDia } from '@/components/SelectorDia';
 
 interface Espacio {
   id: string;
@@ -199,7 +200,7 @@ function Reservar() {
           <h2 style={{ margin: 0 }}>Nueva reserva</h2>
 
           <div className="campos">
-            <label>Día<input type="date" value={form.fecha} min={new Date().toLocaleDateString('sv-SE')} onChange={(e) => cambiar('fecha', e.target.value)} required /></label>
+            <SelectorDia valor={form.fecha} onCambio={(f) => cambiar('fecha', f)} sedeId={espacio?.edificio.sede.id} />
             <label>Desde (hora y minutos)<input type="time" step={60} value={form.desde} onChange={(e) => cambiar('desde', e.target.value)} required /></label>
             <label>Hasta (hora y minutos)<input type="time" step={60} value={form.hasta} onChange={(e) => cambiar('hasta', e.target.value)} required /></label>
             <label>Asistentes<input type="number" min={1} value={form.asistentes} onChange={(e) => cambiar('asistentes', e.target.value)} required /></label>
@@ -286,7 +287,7 @@ function Reservar() {
               Repetir cada semana (mismo día y horario)
             </label>
             {form.semanal && (
-              <label>Hasta el día<input type="date" value={form.repetirHasta} min={form.fecha} onChange={(e) => cambiar('repetirHasta', e.target.value)} /></label>
+              <SelectorDia etiqueta="Hasta el día" valor={form.repetirHasta} minimo={form.fecha} onCambio={(f) => cambiar('repetirHasta', f)} sedeId={espacio?.edificio.sede.id} />
             )}
           </div>
 

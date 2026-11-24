@@ -211,38 +211,38 @@ Para detener todo: `Ctrl + C` en esa terminal.
 
 Todos los usuarios de demostración usan la contraseña **`reservaitn`**:
 
-| Correo | Roles | Qué permite probar |
-|---|---|---|
-| `subdireccion@itn.cl` | Subdirección | Control total: se autoaprueba, aprueba y cancela cualquier reserva |
-| `dir.inf@itn.cl` | Director de Informática + Docente | Aprueba lo de Informática y el LAB-INF1; también pide salas |
-| `dir.enf@itn.cl` | Directora de Enfermería | No ve las solicitudes de Informática |
-| `docente@itn.cl` | Docente de Informática | Sus solicitudes van al director de Informática |
-| `estudiante@itn.cl` | Estudiante matriculada en Informática | Reserva salas de estudio con autorización |
-| `academica@itn.cl` | Dirección Académica | Dashboard, importación del Excel |
-| `operaciones@itn.cl` | Operaciones | Daños, órdenes de trabajo |
-| `aseo@itn.cl` | Aseo y mantención | Solo reporta daños (no puede reservar) |
-| `datd@itn.cl` | DATD (patrocinadora) | Dashboard y usuarios |
+| Persona | Correo | Roles | Qué permite probar |
+|---|---|---|---|
+| Pedro Fernández | `pedro.fernandez@itn.cl` | Subdirección | Control total: se autoaprueba, aprueba y cancela cualquier reserva |
+| Matías Soto | `matias.soto@itn.cl` | Director de Informática + Docente | Aprueba lo de Informática y el LAB-INF1; también pide salas |
+| Valentina Pizarro | `valentina.pizarro@itn.cl` | Directora de Enfermería | No ve las solicitudes de Informática |
+| Andrea Muñoz | `andrea.munoz@itn.cl` | Docente de Informática | Sus solicitudes van al director de Informática |
+| Sofía Vargas | `sofia.vargas@itn.cl` | Estudiante matriculada en Informática | Reserva salas de estudio con autorización |
+| Camila Rojas | `camila.rojas@itn.cl` | Dirección Académica | Dashboard, importación del Excel |
+| Jorge Araya | `jorge.araya@itn.cl` | Operaciones | Daños, órdenes de trabajo |
+| Rosa Contreras | `rosa.contreras@itn.cl` | Aseo y mantención | Solo reporta daños (no puede reservar) |
+| Francisca Urrutia | `francisca.urrutia@itn.cl` | DATD (patrocinadora) | Dashboard y usuarios |
 
 **Recorrido sugerido (5 minutos), que muestra el flujo central (todo en la web):**
 
-1. Entra como `docente@itn.cl`: llegas directo a **Reservar**. Elige un día (por ejemplo, el próximo
+1. Entra como `andrea.munoz@itn.cl`: llegas directo a **Reservar**. Elige un día (por ejemplo, el próximo
    martes), **Desde 08:55** y **Hasta 10:10** (las horas se eligen al minuto), el espacio **A-101**,
    la actividad *Clase* y un motivo. Debajo del espacio verás lo que ya está ocupado ese día.
    Presiona **Reservar**: queda *pendiente de aprobación* y aparece en **Mis reservas**.
 2. Cambia el horario a 09:30–11:00: la página avisa que se cruza y no deja reservar.
-3. **Salir** y entrar como `dir.inf@itn.cl` → **Aprobaciones**. Ahí está la solicitud del docente
+3. **Salir** y entrar como `matias.soto@itn.cl` → **Aprobaciones**. Ahí está la solicitud del docente
    (le corresponde porque el docente es de Informática). Apruébala.
-4. Vuelve a entrar como `docente@itn.cl`: en **Mis reservas** ahora dice *Aprobada*.
-5. Entra como `subdireccion@itn.cl` → **Dashboard**, elige un rango que incluya ese día y haz clic en
+4. Vuelve a entrar como `andrea.munoz@itn.cl`: en **Mis reservas** ahora dice *Aprobada*.
+5. Entra como `pedro.fernandez@itn.cl` → **Dashboard**, elige un rango que incluya ese día y haz clic en
    A-101 para ver el detalle.
 
-Con la app móvil (paso 9) puedes hacer lo mismo como `estudiante@itn.cl`, por ejemplo con una sala
+Con la app móvil (paso 9) puedes hacer lo mismo como `sofia.vargas@itn.cl`, por ejemplo con una sala
 de estudio que se repite cada semana; sus avisos aparecen en la pestaña **Avisos**.
 
 **Contra la API directamente** (útil para probar desde la terminal; macOS / Linux):
 
 ```bash
-TOKEN=$(curl -s localhost:3001/api/auth/login -H 'content-type: application/json' -d '{"email":"estudiante@itn.cl","password":"reservaitn"}' | node -pe 'JSON.parse(require("fs").readFileSync(0)).token')
+TOKEN=$(curl -s localhost:3001/api/auth/login -H 'content-type: application/json' -d '{"email":"sofia.vargas@itn.cl","password":"reservaitn"}' | node -pe 'JSON.parse(require("fs").readFileSync(0)).token')
 ```
 
 ```bash
@@ -311,16 +311,16 @@ usa un túnel: `pnpm --filter @reservaitn/mobile exec expo start --tunnel`.
 
 **Docente en el celular, aprobación en la web:**
 
-1. En el celular, entra como `docente@itn.cl` (contraseña `reservaitn`).
+1. En el celular, entra como `andrea.munoz@itn.cl` (contraseña `reservaitn`).
 2. **Reservar:** elige hoy, *Desde* = dentro de 5 minutos, *Hasta* = una hora después; 10 asistentes;
    un motivo; **Buscar sala** → **Solicitar** en la sugerida. Queda *pendiente*.
-3. En el computador, entra a la web como `dir.inf@itn.cl` → **Aprobaciones** → **Aprobar**.
+3. En el computador, entra a la web como `matias.soto@itn.cl` → **Aprobaciones** → **Aprobar**.
 4. En el celular, la pestaña **Avisos** muestra el aviso en hasta 30 segundos (y el correo llega a
    Mailpit, http://localhost:8025). En **Mis reservas** la reserva aparece *Aprobada*.
 
 **Check-in con el código QR (R18):**
 
-5. En la web, entra como `subdireccion@itn.cl` → **Administración → Espacios** → botón **QR** de la sala
+5. En la web, entra como `pedro.fernandez@itn.cl` → **Administración → Espacios** → botón **QR** de la sala
    que reservaste. El código queda en la pantalla del computador.
 6. En el celular, **Mis reservas** → **Hacer check-in** → permite la cámara → apunta a la pantalla.
    Debe decir *Check-in registrado* y la reserva muestra *✓ Check-in*. Si no hicieras el check-in,
@@ -328,10 +328,10 @@ usa un túnel: `pnpm --filter @reservaitn/mobile exec expo start --tunnel`.
 
 **Personal de aseo:**
 
-7. **Salir** y entra como `aseo@itn.cl`. **Inventario:** elige A-101, quita dos sillas con **−** y
+7. **Salir** y entra como `rosa.contreras@itn.cl`. **Inventario:** elige A-101, quita dos sillas con **−** y
    **Guardar conteo**: el sistema muestra la diferencia.
 8. **Daños:** elige una sala, el ítem, la gravedad y describe el daño → **Enviar reporte**.
-9. En la web, como `operaciones@itn.cl` → **Mantención**: el daño aparece para crear la orden de trabajo.
+9. En la web, como `jorge.araya@itn.cl` → **Mantención**: el daño aparece para crear la orden de trabajo.
 
 ### 9.4 Notificaciones push
 

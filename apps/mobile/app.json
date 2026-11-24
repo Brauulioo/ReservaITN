@@ -9,7 +9,7 @@
       "bundleIdentifier": "cl.itn.reservaitn",
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "ReservaITN usa la cámara solo para leer el código QR de la sala al hacer check-in."
+        "NSCameraUsageDescription": "ReservaITN usa la cámara para leer el código QR de la sala al hacer check-in y para fotografiar daños."
       }
     },
     "android": {
@@ -29,6 +29,13 @@
         {
           "cameraPermission": "ReservaITN usa la cámara solo para leer el código QR de la sala al hacer check-in.",
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "ReservaITN usa la cámara para tomar la foto de un daño y adjuntarla al reporte.",
+          "photosPermission": "ReservaITN accede a tus fotos solo para adjuntar la imagen de un daño al reporte."
         }
       ],
       "expo-notifications"

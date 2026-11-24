@@ -4,8 +4,23 @@ import type { UsuarioSesion } from '../src/comun/auth.guard';
 
 export const prisma = new PrismaService();
 
-/** Sesión de un usuario demo, calculada igual que en el login. */
-export async function sesion(email: string): Promise<UsuarioSesion> {
+/** Cuentas de demostración por rol: las pruebas piden `subdireccion`, `docente`, etc. y esto da el correo de la persona. */
+const CUENTA_DEMO: Record<string, string> = {
+  subdireccion: 'pedro.fernandez',
+  datd: 'francisca.urrutia',
+  academica: 'camila.rojas',
+  'dir.inf': 'matias.soto',
+  docente: 'andrea.munoz',
+  estudiante: 'sofia.vargas',
+  operaciones: 'jorge.araya',
+  aseo: 'rosa.contreras',
+  'dir.enf': 'valentina.pizarro',
+};
+
+/** Sesión de un usuario demo (por correo o por rol, p. ej. `docente@itn.cl`), calculada igual que en el login. */
+export async function sesion(correo: string): Promise<UsuarioSesion> {
+  const [local, dominio] = correo.split('@');
+  const email = CUENTA_DEMO[local] ? `${CUENTA_DEMO[local]}@${dominio}` : correo;
   const p = await prisma.persona.findUniqueOrThrow({ where: { email }, include: { usuario: true } });
   const id = p.usuario!.id;
   const roles = await prisma.$queryRaw<{ codigo: Rol; sede_id: string | null; carrera_id: string | null }[]>`

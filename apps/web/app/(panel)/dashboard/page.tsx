@@ -4,6 +4,9 @@ import { api, descargar, sesion } from '@/lib/api';
 import { DialogoMotivo } from '@/components/DialogoMotivo';
 import { Cabecera } from '@/components/ui';
 import { ConPermiso } from '@/components/Panel';
+import { GraficaCiclica, type Punto } from '@/components/GraficaCiclica';
+import { SelectorDia } from '@/components/SelectorDia';
+import { Plegable } from '@/components/Plegable';
 
 interface FilaSala { espacioId: string; codigo: string; nombre: string; sede: string; tipo: string; horasReservadas: number; indice: number }
 interface Ocupacion {
@@ -60,6 +63,38 @@ const ESTADO: Record<string, string> = {
 };
 const fechaCorta = (d: string) => new Date(d).toLocaleString('es-CL', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const horaCorta = (d: string) => new Date(d).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+/** Agrupaciones para las gráficas: usan los mismos datos que ya carga la página. */
+const porEstado = (rs: ReservaPeriodo[]): Punto[] => {
+  const n: Record<string, number> = {};
+  rs.forEach((r) => { n[r.estado] = (n[r.estado] ?? 0) + 1; });
+  return Object.entries(n).map(([e, valor]) => ({ nombre: ESTADO[e] ?? e, valor })).sort((a, b) => b.valor - a.valor);
+};
+const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const porDiaSemana = (rs: ReservaPeriodo[]): Punto[] => {
+  const n = [0, 0, 0, 0, 0, 0, 0];
+  rs.filter((r) => r.estado === 'PENDIENTE' || r.estado === 'APROBADA').forEach((r) => { n[(new Date(r.inicio).getDay() + 6) % 7] += 1; });
+  if (n.every((v) => v === 0)) return [];
+  return DIAS_SEMANA.map((nombre, i) => ({ nombre, valor: n[i] })).filter((p, i) => i < 5 || p.valor > 0);
+};
+const porJornada = (p: Proyeccion): Punto[] => {
+  const vistos = new Set<string>();
+  return [...p.mayorUso, ...p.menorUso]
+    .filter((b) => { const k = b.dia + b.jornada; return vistos.has(k) ? false : (vistos.add(k), true); })
+    .map((b) => ({ nombre: `${b.dia.slice(0, 3)} ${JORNADA[b.jornada]}`, valor: Math.round(b.horas * 10) / 10 }));
+};
+
+/** Desde/hasta del reporte con el calendario del sistema (modo libre: se puede consultar cualquier día). */
+function CamposRango({ rango }: { rango: { desde: string; hasta: string } }) {
+  const [desde, setDesde] = useState(rango.desde);
+  const [hasta, setHasta] = useState(rango.hasta);
+  return (
+    <>
+      <SelectorDia libre nombre="desde" etiqueta="Desde" valor={desde} onCambio={setDesde} />
+      <SelectorDia libre nombre="hasta" etiqueta="Hasta (incluido)" valor={hasta} minimo={desde} onCambio={setHasta} />
+    </>
+  );
+}
 
 /** Dashboard de ocupación (R12, WBS 1.4.7), reporte desde–hasta (R13) y proyección de uso (R14, WBS 1.4.8). */
 function Dashboard() {
@@ -133,8 +168,7 @@ function Dashboard() {
     <>
       <Cabecera miga="Análisis" titulo="Dashboard y reportes" sub="Ocupación, indicadores y reservas del período, con exportación a Excel (R12, R13)." />
         <form className="fila" onSubmit={aplicar} key={`${rango.desde}-${rango.hasta}`}>
-          <label>Desde<input type="date" name="desde" defaultValue={rango.desde} /></label>
-          <label>Hasta (incluido)<input type="date" name="hasta" defaultValue={rango.hasta} /></label>
+          <CamposRango rango={rango} />
           <button type="submit">Generar reporte</button>
           {puedeExportar && (
             <button type="button" onClick={exportarExcel} title="Descarga el reporte del período en Excel">
@@ -158,9 +192,29 @@ function Dashboard() {
               <div className="card kpi"><div className="etiqueta">Tiempo medio de aprobación</div><div className="valor">{ind.B6_tiempoPromedioAprobacionHoras === null ? '—' : `${ind.B6_tiempoPromedioAprobacionHoras.toFixed(1)} h`}</div></div>
             </section>
 
-            <section className="card">
-              <h2>Ocupación por sala</h2>
-              <p className="etiqueta" style={{ marginTop: 0 }}>Horas de reservas aprobadas sobre las horas disponibles del período. Clic en una sala para ver su detalle.</p>
+            <section className="graficas-grilla" aria-label="Gráficas de ocupación">
+              <GraficaCiclica
+                titulo="Ocupación por sala" nota="Las 8 salas más ocupadas del período."
+                datos={[...datos.porEspacio].sort((a, b) => b.indice - a.indice).slice(0, 8).map((s) => ({ nombre: s.codigo, valor: Math.round(s.indice * 1000) / 10 }))}
+                tipos={['barras', 'lineas']} formato={(n) => `${n} %`}
+              />
+              <GraficaCiclica
+                titulo="Reservas por estado" nota="Todas las reservas del período."
+                datos={porEstado(reservas)} tipos={['dona', 'barras', 'lineas']}
+              />
+              <GraficaCiclica
+                titulo="Uso por día de la semana" nota="Reservas pendientes y aprobadas."
+                datos={porDiaSemana(reservas)} tipos={['barras', 'lineas', 'dona']}
+              />
+              {proy && (
+                <GraficaCiclica
+                  titulo="Jornadas de mayor y menor uso" nota="Horas reservadas en las jornadas destacadas."
+                  datos={porJornada(proy)} tipos={['barras', 'lineas', 'dona']} formato={(n) => `${n} h`}
+                />
+              )}
+            </section>
+
+            <Plegable titulo="Ocupación por sala" nota="Horas de reservas aprobadas sobre las horas disponibles del período. Clic en una sala para ver su detalle.">
               <table>
                 <thead><tr><th>Sala</th><th>Sede</th><th>Tipo</th><th>Horas</th><th>Ocupación</th><th></th></tr></thead>
                 <tbody>
@@ -173,11 +227,10 @@ function Dashboard() {
                   ))}
                 </tbody>
               </table>
-            </section>
+            </Plegable>
 
             {detalle && (
-              <section className="card">
-                <h2>Detalle {detalle.sala.codigo} · {detalle.sala.nombre}</h2>
+              <Plegable key={detalle.sala.espacioId} titulo={`Detalle ${detalle.sala.codigo} · ${detalle.sala.nombre}`}>
                 {detalle.reservas.length === 0 ? <p>Sin reservas en el período.</p> : (
                   <table>
                     <thead><tr><th>Inicio</th><th>Fin</th><th>Motivo</th><th>Origen</th><th>Estado</th></tr></thead>
@@ -186,17 +239,18 @@ function Dashboard() {
                     ))}</tbody>
                   </table>
                 )}
-              </section>
+              </Plegable>
             )}
 
-            <section className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
-                <h2>Reservas del período</h2>
+            <Plegable
+              titulo="Reservas del período"
+              acciones={(
                 <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <input type="checkbox" checked={soloActivas} onChange={(e) => setSoloActivas(e.target.checked)} />
                   Solo pendientes y aprobadas
                 </label>
-              </div>
+              )}
+            >
               {(() => {
                 const filas = reservas.filter((r) => !soloActivas || r.estado === 'PENDIENTE' || r.estado === 'APROBADA');
                 return filas.length === 0 ? (
@@ -234,19 +288,18 @@ function Dashboard() {
                   </table>
                 );
               })()}
-            </section>
+            </Plegable>
 
             {proy && (
               <section className="grid">
                 {([['Jornadas de mayor uso', proy.mayorUso], ['Jornadas de menor uso', proy.menorUso]] as const).map(([titulo, bloques]) => (
-                  <div className="card" key={titulo}>
-                    <h2>{titulo}</h2>
+                  <Plegable titulo={titulo} key={titulo}>
                     <table>
                       <tbody>{bloques.map((b) => (
                         <tr key={b.dia + b.jornada}><td>{b.dia} {JORNADA[b.jornada]}</td><td>{b.horas.toFixed(1)} h</td></tr>
                       ))}</tbody>
                     </table>
-                  </div>
+                  </Plegable>
                 ))}
               </section>
             )}

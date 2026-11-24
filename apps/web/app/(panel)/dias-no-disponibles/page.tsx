@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { periodoNoDisponibleSchema } from '@reservaitn/shared';
 import { ConPermiso } from '@/components/Panel';
 import { Badge, Cabecera, Cargando, Icono, Vacio, useAviso, useDatos } from '@/components/ui';
+import { SelectorDia } from '@/components/SelectorDia';
 import { api, enviar, mensajeError } from '@/lib/api';
 
 interface Sede { id: string; nombre: string }
@@ -168,15 +169,9 @@ function Contenido() {
         </div>
 
         <div className="campos">
-          <label>
-            Desde (00:00)
-            <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required />
-          </label>
+          <SelectorDia libre etiqueta="Desde (00:00)" valor={desde} onCambio={setDesde} sedeId={sedeId || undefined} />
           {personalizado ? (
-            <label>
-              Hasta (23:59)
-              <input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required />
-            </label>
+            <SelectorDia libre etiqueta="Hasta (23:59)" valor={hasta} minimo={desde} onCambio={setHasta} sedeId={sedeId || undefined} />
           ) : (
             <label>
               Cuántos

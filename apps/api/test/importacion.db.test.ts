@@ -26,7 +26,7 @@ describe('importación de planificación (R9)', () => {
     const tipo = await prisma.tipo_espacio.findUniqueOrThrow({ where: { codigo: 'SALA' } });
     const codigo = `IMP-${anio}`;
     await prisma.espacio.create({ data: { edificio_id: edificio.id, tipo_espacio_id: tipo.id, codigo, nombre: 'Sala de importación', capacidad: 40 } });
-    const operaciones = await sesion('operaciones@itn.cl');
+    const operaciones = await sesion('jorge.araya@itn.cl');
 
     const r = await svc.importar(
       {

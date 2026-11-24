@@ -4,6 +4,7 @@ import { reservaCreateSchema } from '@reservaitn/shared';
 import { api, esEstudiante, post } from '../api';
 import { Aviso, Boton, Campo, Etiqueta, Fichas, Tarjeta, Titulo, colores } from '../ui';
 import { CampoFechaHora, fechaLarga, hhmm } from '../comun/CampoFechaHora';
+import { CampoDia } from '../comun/CampoDia';
 
 interface Espacio {
   id: string;
@@ -143,7 +144,7 @@ export function Reservar({ alReservar }: { alReservar: () => void }) {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }} keyboardShouldPersistTaps="handled">
       <Titulo>Nueva reserva</Titulo>
-      <CampoFechaHora etiqueta="Día" modo="date" valor={fecha} minimo={new Date()} onCambio={(d) => { setFecha(d); limpiar(); }} />
+      <CampoDia etiqueta="Día" valor={fecha} onCambio={(d) => { setFecha(d); limpiar(); }} />
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <CampoFechaHora etiqueta="Desde" modo="time" valor={desde} onCambio={(d) => { setDesde(d); limpiar(); }} />
         <CampoFechaHora etiqueta="Hasta" modo="time" valor={hasta} onCambio={(d) => { setHasta(d); limpiar(); }} />
@@ -163,7 +164,7 @@ export function Reservar({ alReservar }: { alReservar: () => void }) {
         <Text style={{ color: colores.texto, fontSize: 15 }}>Repetir cada semana</Text>
         <Switch value={semanal} onValueChange={setSemanal} />
       </View>
-      {semanal && <CampoFechaHora etiqueta="Repetir hasta" modo="date" valor={repetirHasta} minimo={fecha} onCambio={setRepetirHasta} />}
+      {semanal && <CampoDia etiqueta="Repetir hasta" valor={repetirHasta} minimo={fecha} onCambio={setRepetirHasta} />}
 
       <View style={{ gap: 6 }}>
         <Etiqueta>¿Cómo elegir la sala?</Etiqueta>

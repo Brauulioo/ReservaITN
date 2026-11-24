@@ -99,3 +99,11 @@ export async function descargar(ruta: string, nombrePorDefecto: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/** Trae una imagen protegida (requiere sesión) y devuelve una URL temporal para mostrarla en un <img>. */
+export async function imagenProtegida(ruta: string): Promise<string> {
+  const s = sesion();
+  const res = await fetch(`${BASE}${ruta}`, { headers: s ? { authorization: `Bearer ${s.token}` } : {} });
+  if (!res.ok) throw new ErrorApi(res.status, 'No se pudo cargar la foto');
+  return URL.createObjectURL(await res.blob());
+}
