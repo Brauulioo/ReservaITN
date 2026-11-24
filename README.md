@@ -14,7 +14,7 @@ Gonzalo Pino (ingeniero de sistemas) y Braulio Campos (QA y diseño de la web).
 |---|---|
 | **Web** (administración, dashboard, reservas) | **https://reserva-itn-puce.vercel.app** |
 | **API** (estado) | https://reservaitn.onrender.com/api/health |
-| **App Android** (APK de prueba) | Último build en [expo.dev · jgb-team/reservaitn](https://expo.dev/accounts/jgb-team/projects/reservaitn/builds) |
+| **App Android 1.2.0** (APK de prueba) | [Descargar APK](https://expo.dev/artifacts/eas/Zw9HbudhlsewKRAK3zioR5VfF8pOadTbGtIpONdIDHQ.apk) · historial en [expo.dev · jgb-team/reservaitn](https://expo.dev/accounts/jgb-team/projects/reservaitn/builds) |
 
 Todas las cuentas de demostración usan la contraseña **`reservaitn`** (datos ficticios):
 
@@ -53,7 +53,7 @@ flowchart LR
 | **Web** | Vercel (Hobby, gratis) | Pantallas para administrar, aprobar, ver el dashboard y reservar. No guarda datos: todo lo pide a la API | `apps/web/vercel.json`, variables `NEXT_PUBLIC_*` |
 | **API** | Render (Free) | Reglas de negocio, permisos, validaciones, reportes Excel. Al iniciar aplica las migraciones pendientes. Corre tareas cada 15 s (cola de avisos) y cada minuto (vencer pendientes y liberar reservas sin check-in) | `render.yaml` |
 | **Base de datos** | Neon (Free) | PostgreSQL 16 gestionado. Las reglas críticas viven aquí: anti-choques (`EXCLUDE`), transiciones de estado, auditoría inmutable, aprobadores por regla | `packages/db/migraciones` (V001–V014) |
-| **App móvil** | Expo EAS Build (gratis) | Compila el APK de Android en la nube. Reservar, mis reservas, check-in por QR, avisos, inventario y daños | `apps/mobile/eas.json`, proyecto `@jgb-team/reservaitn` |
+| **App móvil** | Expo EAS Build (gratis) | Compila el APK de Android en la nube. Subdirección: panel con gráficos, solicitudes por decidir y reservas de todas las cuentas por día. Resto: reservar, mis reservas, check-in por QR, avisos, inventario y daños | `apps/mobile/eas.json`, proyecto `@jgb-team/reservaitn` |
 | **Push** | Expo Push + Firebase (gratis) | Lleva las notificaciones al celular registrado | `apps/mobile/google-services.json` + clave FCM en Expo |
 | **Correo** | SMTP del ITN | Avisos por correo con reintentos. **En la nube queda en cola hasta configurar `SMTP_URL`** | Variable en Render |
 
