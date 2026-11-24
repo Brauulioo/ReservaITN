@@ -12,6 +12,7 @@ const reservas = new ReservasService(prisma, new NotificacionesService());
 const dashboard = new DashboardService(prisma);
 const lunes = lunesAlAzar();
 let libro: ExcelJS.Workbook;
+let semana: { desde: Date; hasta: Date };
 let docente: UsuarioSesion;
 
 beforeAll(async () => {
@@ -28,6 +29,7 @@ beforeAll(async () => {
   await reservas.cancelar(cancelada.reserva[0].id, sub, 'Evento institucional en la sala');
 
   const q = { desde: a(lunes, 0, '00:00'), hasta: a(lunes, 7, '00:00') };
+  semana = q;
   const [ocupacion, indicadores, filas] = await Promise.all([dashboard.ocupacion(q), dashboard.indicadores(q), dashboard.reservas(q)]);
   const buffer = await construirReporteExcel({
     institucion: 'Instituto Técnico del Norte', desde: q.desde, hasta: q.hasta, sede: null, generadoPor: sub.nombre,
@@ -78,5 +80,30 @@ describe('reporte Excel', () => {
   it('el uso por jornada suma las horas aprobadas en el día y la jornada correctos', () => {
     const lunesFila = filasDeDatos('Uso por jornada').find((f) => f[0] === 'Lunes')!;
     expect(lunesFila.slice(1, 5)).toEqual([1.3, 0, 0, 1.3]); // 08:55–10:10 = 1,25 h → mañana
+  });
+});
+
+describe('inicio de Subdirección (4 gráficos)', () => {
+  it('mapa de calor, jornadas, no usadas e indicadores salen de las mismas reservas', async () => {
+    const r = await dashboard.inicio(semana);
+    expect(r.indicadores).toMatchObject({ aprobadas: 1, pendientes: 1, solicitudes: 3, noUsadas: 1 });
+    // 08:55–10:10 del lunes: 5 min en el bloque de 8, la hora completa de 9 y 10 min en el de 10
+    const lunesCalor = r.mapaCalor.valores[0];
+    expect(lunesCalor[1]).toBeCloseTo(1 / r.salas, 3);
+    expect(lunesCalor[0]).toBeCloseTo(5 / 60 / r.salas, 3);
+    expect(r.mapaCalor.valores[1].every((v) => v === 0)).toBe(true); // la del martes está pendiente
+    const [manana, tarde] = r.capacidadPorJornada;
+    expect(manana.horasOcupadas).toBe(1.3);
+    expect(tarde.horasOcupadas).toBe(0);
+    expect(manana.horasOcupadas + manana.horasLibres).toBeCloseTo(manana.horasDisponibles, 1);
+    expect(r.noUsadasPorSala.find((x) => x.codigo === 'A-101')).toMatchObject({ canceladas: 1, total: 1 });
+    expect(r.ocupacionPorSala).toHaveLength(r.salas);
+  });
+
+  it('el filtro por tipo de espacio deja fuera la sala de estudio', async () => {
+    const r = await dashboard.inicio(semana, 'SALA');
+    expect(r.ocupacionPorSala.every((s) => s.tipo === 'Sala de clases')).toBe(true);
+    expect(r.indicadores.pendientes).toBe(0); // la pendiente era en EST-1
+    expect(r.indicadores.aprobadas).toBe(1);
   });
 });

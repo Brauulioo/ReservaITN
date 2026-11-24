@@ -61,7 +61,11 @@ export function usePanel(): CtxPanel {
   return c;
 }
 
-/** Sin sesión redirige a /login. Los contadores se consultan al entrar y cada 60 s. */
+/**
+ * En computador la barra lateral queda angosta, solo con íconos, y se despliega por encima del
+ * contenido al pasar el mouse o al navegar con el teclado (CSS: .sidebar:hover / :focus-within).
+ * En celular se abre con el botón de menú.
+ * Sin sesión redirige a /login. Los contadores se consultan al entrar y cada 60 s. */
 export function Panel({ children }: { children: ReactNode }) {
   const router = useRouter();
   const ruta = usePathname();
@@ -101,24 +105,24 @@ export function Panel({ children }: { children: ReactNode }) {
         <div className="app">
           <aside className={`sidebar${menuAbierto ? ' abierta' : ''}`}>
             <Link href="/inicio" className="marca" style={{ textDecoration: 'none' }}>
-              <Logo alto={30} claro />
-              <span><strong>ReservaITN</strong><small>Instituto Técnico del Norte</small></span>
+              <span className="logo-caja"><Logo alto={26} claro /></span>
+              <span className="texto"><strong>ReservaITN</strong><small>Instituto Técnico del Norte</small></span>
             </Link>
             <nav className="nav" aria-label="Principal">
               {items.map((g) => (
                 <div key={g.grupo} style={{ display: 'grid', gap: 2 }}>
-                  <div className="grupo">{g.grupo}</div>
+                  <div className="grupo"><span className="texto">{g.grupo}</span></div>
                   {g.items.map((i) => (
-                    <Link key={i.href} href={i.href} className={ruta.startsWith(i.href) ? 'activo' : ''}>
+                    <Link key={i.href} href={i.href} className={ruta.startsWith(i.href) ? 'activo' : ''} title={i.texto}>
                       <Icono n={i.icono} />
-                      {i.texto}
+                      <span className="texto">{i.texto}</span>
                       {i.contador === 'pendientes' && pendientes > 0 && <span className="contador">{pendientes}</span>}
                     </Link>
                   ))}
                 </div>
               ))}
             </nav>
-            <div className="pie">
+            <div className="pie texto">
               <div className="lema">Formación que construye tu futuro</div>
               <div style={{ marginTop: 4 }}>Arica · JBG Tech</div>
             </div>

@@ -20,7 +20,8 @@ apps/web/
 │       ├── layout.tsx       envuelve cada página con <Panel>
 │       └── <pantalla>/page.tsx
 ├── components/
-│   ├── Panel.tsx            menú lateral según permisos, barra superior, usePanel(), ConPermiso
+│   ├── Panel.tsx            menú lateral según permisos (en computador: íconos que se despliegan al pasar el mouse), barra superior, usePanel(), ConPermiso
+│   ├── InicioSubdireccion.tsx  inicio con 4 gráficos para quien ve el dashboard
 │   ├── ui.tsx               Icono, Logo, Cabecera, Badge, EstadoBadge, Modal, Vacio, Cargando, useAviso, useDatos
 │   ├── Historial.tsx        línea de tiempo de una reserva (R7)
 │   ├── DialogoMotivo.tsx    pide el motivo al rechazar o cancelar una reserva ajena
@@ -40,7 +41,7 @@ Los permisos los calcula la base de datos al iniciar sesión (`seguridad.permiso
 | Ruta | Permiso | Requisitos | API que usa |
 |---|---|---|---|
 | `/login` | público | E4 | `POST /auth/login` |
-| `/inicio` | sesión | — | `GET /reservas/mias`, `/notificaciones/mias`, `/solicitudes/pendientes` |
+| `/inicio` | sesión | R12, R14 | Con `dashboard:ver` (Subdirección, Dirección Académica, DATD): los 4 gráficos de uso de salas en una ventana, `GET /dashboard/inicio`. El resto: `GET /reservas/mias`, `/notificaciones/mias`, `/solicitudes/pendientes` |
 | `/reservar` | `reserva:solicitar` | R1, R2, R10, R11 | `GET /espacios`, `/sedes`, `/catalogos`, `POST /sugerencia`, `POST /reservas` |
 | `/calendario` | sesión | R3 | `GET /espacios`, `GET /reservas/ocupacion` |
 | `/mis-reservas` | `reserva:solicitar` | R5, R7, R18 | `GET /reservas/mias`, `POST /reservas/:id/cancelar`, `GET /reservas/:id/historial` |
@@ -80,3 +81,17 @@ de los componentes; así el modo oscuro (`prefers-color-scheme: dark`) funciona 
 
 Next.js no permite exportar nada más que el componente por defecto desde un `page.tsx`: los componentes
 compartidos entre pantallas van en `components/`.
+
+## Barra lateral e inicio de Subdirección
+
+- **Barra lateral deslizante (computador, más de 900 px):** en reposo mide 76 px y muestra solo los
+  íconos; al pasar el mouse, o al navegar con el teclado, se despliega a 284 px **por encima** del
+  contenido (sin mover la página). Es solo CSS (`.sidebar:hover`, `:focus-within`) y respeta
+  "reducir movimiento". En celular se abre con el botón de menú, como antes.
+- **Inicio de Subdirección:** quien tiene `dashboard:ver` ve en `/inicio` los 4 gráficos de prioridad
+  alta en una sola ventana (diseño elegido: boceto A, panel en cuadrícula):
+  ocupación por sala (clic → calendario de la sala), mapa de calor día × hora, reservas que no se
+  usaron (las 8 salas con más pérdidas) y capacidad libre por jornada, más 4 indicadores.
+  Filtros: período (esta semana, este mes, mes anterior, próximas 4 semanas), sede y tipo de
+  espacio; se recuerdan en el navegador. Los datos llegan calculados de `GET /dashboard/inicio`,
+  con el mismo cálculo de ocupación que el dashboard y el Excel.

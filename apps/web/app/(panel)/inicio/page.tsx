@@ -7,6 +7,7 @@ import { fecha, hace, rangoHora, rolPrincipal } from '@/lib/formato';
 import type { Notificacion, ReservaPropia } from '@/lib/tipos';
 import type { Permiso } from '@reservaitn/shared';
 import styles from './inicio.module.css';
+import { InicioSubdireccion } from '@/components/InicioSubdireccion';
 
 /** Accesos rápidos: cada uno se muestra solo si la sesión tiene el permiso (los calcula la base de datos). */
 const ACCESOS: {
@@ -41,7 +42,7 @@ function diaDeReserva(inicio: string) {
 }
 
 /** Inicio: saludo, accesos según permisos, próximas reservas y avisos recientes del usuario. */
-export default function Inicio() {
+function InicioPersonal() {
   const { sesion, puede } = usePanel();
   const solicita = puede('reserva:solicitar');
   const aprueba = puede('reserva:aprobar');
@@ -193,4 +194,13 @@ export default function Inicio() {
       </section>
     </div>
   );
+}
+
+/**
+ * Quien ve el dashboard (Subdirección, Dirección Académica, DATD) entra a los 4 gráficos de uso
+ * de salas; el resto de los roles ve su inicio personal (próximas reservas y avisos).
+ */
+export default function Inicio() {
+  const { puede } = usePanel();
+  return puede('dashboard:ver') ? <InicioSubdireccion /> : <InicioPersonal />;
 }

@@ -6,6 +6,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 ## [Sin publicar] — hacia H4 (13/11/2026) y H5 (27/11/2026)
 
 ### Agregado
+- **Inicio de Subdirección con 4 gráficos** en una sola ventana (ocupación por sala, mapa de calor
+  día × hora, reservas no usadas, capacidad libre por jornada), filtros de período, sede y tipo, y
+  `GET /api/dashboard/inicio` (R12, R14).
+- **Barra lateral deslizante:** íconos en reposo; se despliega al pasar el mouse sin mover la página.
+- **App móvil: elegir cualquier sala**, con su estado libre u ocupado en el horario pedido (R3).
 - **Publicación en la nube por servicios:** web en Vercel, API en Render (aplica migraciones al iniciar),
   PostgreSQL en Neon y app Android compilada con EAS (`@jgb-team/reservaitn`).
 - **Notificaciones push en Android** con Expo Push y Firebase; el login de la web despierta la API.

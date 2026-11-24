@@ -57,6 +57,7 @@ flowchart LR
 | POST | `/api/solicitudes/:id/aprobar`, `/rechazar` (motivo obligatorio) | `reserva:aprobar` | R4, R6, D14 |
 | POST | `/api/sugerencia` | `reserva:solicitar` | R10 |
 | GET | `/api/dashboard/ocupacion`, `/api/dashboard/indicadores`, `/api/dashboard/reservas` | `dashboard:ver` | R12, R13, R7, B3, B6 |
+| GET | `/api/dashboard/inicio?desde&hasta&sedeId&tipo` | `dashboard:ver` | R12, R14: inicio de Subdirección (ocupación por sala, mapa de calor día × hora, capacidad libre por jornada, reservas no usadas e indicadores) |
 | GET | `/api/dashboard/reporte.xlsx?desde&hasta&sedeId` | `reporte:generar` | R13: Excel con resumen, ocupación por espacio, detalle de reservas y uso por jornada |
 | GET | `/api/proyeccion` | `dashboard:ver` | R14 |
 | GET/PATCH | `/api/notificaciones/mias`, `/no-leidas`, `/:id/leida`, `/leidas` (todas) | sesión | R6 |

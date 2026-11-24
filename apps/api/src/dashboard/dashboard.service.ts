@@ -3,6 +3,18 @@ import { Prisma } from '@prisma/client';
 import { HORARIO, horasOcupadas, indiceOcupacion, type RangoFechas } from '@reservaitn/shared';
 import { PrismaService } from '../comun/prisma.service';
 
+const partesChile = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Santiago', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
+/** Día de la semana en Chile: 0 = lunes … 6 = domingo. */
+export function diaSemanaChile(d: Date): number {
+  const dia = partesChile.formatToParts(d).find((p) => p.type === 'weekday')!.value;
+  return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(dia);
+}
+/** Hora decimal en Chile (10:30 → 10.5). */
+export function horaChile(d: Date): number {
+  const p = Object.fromEntries(partesChile.formatToParts(d).map((x) => [x.type, x.value]));
+  return Number(p.hour) + Number(p.minute) / 60;
+}
+
 /** Días hábiles (lun–sáb) en el rango × horas del horario institucional. */
 export function horasDisponiblesPorSala(desde: Date, hasta: Date): number {
   const horasDia = HORARIO.cierreHora - HORARIO.aperturaHora;
@@ -67,9 +79,111 @@ export class DashboardService {
     });
   }
 
-  async ocupacion(q: RangoFechas) {
+  /**
+   * Inicio de Subdirección: los 4 gráficos de prioridad alta y sus indicadores en una sola
+   * consulta, con los mismos filtros (período, sede y tipo de espacio). Reutiliza `ocupacion`,
+   * así las cifras coinciden con el dashboard detallado y el Excel.
+   */
+  async inicio(q: RangoFechas, tipo?: string) {
+    const ocu = await this.ocupacion(q, tipo);
+    const ids = ocu.porEspacio.map((e) => e.espacioId);
+    const salas = ids.length;
+    const { aperturaHora: H0, cierreHora: H1 } = HORARIO;
+
+    // Días hábiles del período por día de la semana (0 = lunes … 5 = sábado), en hora de Chile
+    const diasPorDia = [0, 0, 0, 0, 0, 0];
+    for (let d = new Date(q.desde); d < q.hasta; d = new Date(d.getTime() + 86_400_000)) {
+      const dia = diaSemanaChile(d);
+      if (dia <= 5) diasPorDia[dia]++;
+    }
+
+    // Mapa de calor: horas ocupadas en cada bloque de una hora ÷ horas posibles (días × salas)
+    const calor = diasPorDia.map(() => Array<number>(H1 - H0).fill(0));
+    // Capacidad por jornada: horas ocupadas vs disponibles
+    const JORNADAS = [
+      { nombre: 'Mañana', desde: 8, hasta: 13 },
+      { nombre: 'Tarde', desde: 13, hasta: 18 },
+      { nombre: 'Vespertina', desde: 18, hasta: 23 },
+    ];
+    const ocupadasJornada = JORNADAS.map(() => 0);
+    for (const r of ocu.reservas) {
+      const ini = Math.max(r.inicio.getTime(), q.desde.getTime());
+      const fin = Math.min(r.fin.getTime(), q.hasta.getTime());
+      if (fin <= ini) continue;
+      const dia = diaSemanaChile(new Date(ini));
+      if (dia > 5) continue;
+      const h0 = horaChile(new Date(ini));
+      const h1 = h0 + (fin - ini) / 3_600_000;
+      for (let h = H0; h < H1; h++) calor[dia][h - H0] += Math.max(0, Math.min(h1, h + 1) - Math.max(h0, h));
+      JORNADAS.forEach((j, i) => (ocupadasJornada[i] += Math.max(0, Math.min(h1, j.hasta) - Math.max(h0, j.desde))));
+    }
+    const diasHabiles = diasPorDia.reduce((a, b) => a + b, 0);
+    const redondo = (x: number) => Math.round(x * 10) / 10;
+
+    // Reservas del período por estado y sala (no usadas = canceladas, liberadas y vencidas)
+    const porEstado = ids.length
+      ? await this.prisma.reserva.groupBy({
+          by: ['espacio_id', 'estado'],
+          where: { espacio_id: { in: ids }, inicio: { gte: q.desde, lt: q.hasta }, solicitud: { origen: { not: 'MANTENCION' } } },
+          _count: { _all: true },
+        })
+      : [];
+    const contar = (estados: string[], espacioId?: string) =>
+      porEstado
+        .filter((x) => estados.includes(x.estado) && (!espacioId || x.espacio_id === espacioId))
+        .reduce((s, x) => s + x._count._all, 0);
+    const total = contar(['PENDIENTE', 'APROBADA', 'RECHAZADA', 'CANCELADA', 'LIBERADA', 'EXPIRADA']);
+    const noUsadas = contar(['CANCELADA', 'LIBERADA', 'EXPIRADA']);
+    const horasOcupadasTotal = ocu.porEspacio.reduce((s, e) => s + e.horasReservadas, 0);
+    const horasDisponiblesTotal = salas * horasDisponiblesPorSala(q.desde, q.hasta);
+
+    return {
+      rango: ocu.rango,
+      salas,
+      indicadores: {
+        ocupacion: ocu.indiceGlobal,
+        horasOcupadas: redondo(horasOcupadasTotal),
+        horasDisponibles: horasDisponiblesTotal,
+        aprobadas: contar(['APROBADA']),
+        pendientes: contar(['PENDIENTE']),
+        solicitudes: total,
+        noUsadas,
+        proporcionNoUsadas: total ? noUsadas / total : 0,
+      },
+      ocupacionPorSala: ocu.porEspacio.map(({ espacioId, codigo, nombre, sede, tipo: t, capacidad, horasReservadas, indice }) => ({
+        espacioId, codigo, nombre, sede, tipo: t, capacidad, horasReservadas, indice,
+      })),
+      mapaCalor: {
+        horas: Array.from({ length: H1 - H0 }, (_, i) => H0 + i),
+        dias: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        // proporción de salas ocupadas en cada bloque (0 a 1)
+        valores: calor.map((fila, d) => fila.map((h) => (diasPorDia[d] && salas ? Math.round((h / (diasPorDia[d] * salas)) * 1000) / 1000 : 0))),
+      },
+      capacidadPorJornada: JORNADAS.map((j, i) => {
+        const disponibles = diasHabiles * salas * (j.hasta - j.desde);
+        const ocupadas = redondo(ocupadasJornada[i]);
+        return { ...j, horasOcupadas: ocupadas, horasLibres: redondo(Math.max(0, disponibles - ocupadas)), horasDisponibles: disponibles };
+      }),
+      noUsadasPorSala: ocu.porEspacio
+        .map((e) => ({
+          codigo: e.codigo,
+          canceladas: contar(['CANCELADA'], e.espacioId),
+          liberadas: contar(['LIBERADA'], e.espacioId),
+          vencidas: contar(['EXPIRADA'], e.espacioId),
+        }))
+        .map((x) => ({ ...x, total: x.canceladas + x.liberadas + x.vencidas }))
+        .sort((a, b) => b.total - a.total || a.codigo.localeCompare(b.codigo)),
+    };
+  }
+
+  async ocupacion(q: RangoFechas, tipo?: string) {
     const espacios = await this.prisma.espacio.findMany({
-      where: { activo: true, reservable: true, ...(q.sedeId ? { edificio: { sede_id: q.sedeId } } : {}) },
+      where: {
+        activo: true,
+        reservable: true,
+        ...(q.sedeId ? { edificio: { sede_id: q.sedeId } } : {}),
+        ...(tipo ? { tipo_espacio: { codigo: tipo } } : {}),
+      },
       select: {
         id: true,
         codigo: true,

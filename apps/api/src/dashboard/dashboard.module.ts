@@ -24,6 +24,16 @@ class DashboardController {
     return resto;
   }
 
+  /**
+   * Inicio de Subdirección: ocupación por sala, mapa de calor día × hora, capacidad libre por
+   * jornada y reservas no usadas, con sus indicadores. `tipo` = código del tipo de espacio.
+   */
+  @RequierePermiso('dashboard:ver')
+  @Get('inicio')
+  inicio(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas, @Query('tipo') tipo?: string) {
+    return this.svc.inicio(q, tipo && /^[A-Z_]{1,40}$/.test(tipo) ? tipo : undefined);
+  }
+
   @RequierePermiso('dashboard:ver')
   @Get('indicadores')
   indicadores(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas) {
