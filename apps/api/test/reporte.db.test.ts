@@ -47,6 +47,15 @@ const filasDeDatos = (hoja: string) => {
   return filas;
 };
 
+describe('lista de reservas para la app de Subdirección', () => {
+  it('trae solicitud, solicitante y código del espacio para aprobar y filtrar por cuenta', async () => {
+    const filas = await dashboard.reservas(semana);
+    const delDocente = filas.filter((f) => f.solicitanteId === docente.id);
+    expect(delDocente.length).toBeGreaterThanOrEqual(2);
+    expect(delDocente.every((f) => f.solicitudId && f.codigoEspacio === 'A-101')).toBe(true);
+  });
+});
+
 describe('reporte Excel', () => {
   it('tiene las cuatro hojas', () => {
     expect(libro.worksheets.map((w) => w.name)).toEqual(['Resumen', 'Ocupación por espacio', 'Reservas', 'Uso por jornada']);

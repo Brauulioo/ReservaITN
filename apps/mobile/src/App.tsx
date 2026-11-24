@@ -12,14 +12,18 @@ import { Reservar } from './docentes/Reservar';
 import { MisReservas } from './docentes/MisReservas';
 import { Inventario } from './mantencion/Inventario';
 import { ReporteDanio } from './mantencion/ReporteDanio';
+import { PanelSubdireccion } from './subdireccion/Panel';
+import { Solicitudes } from './subdireccion/Solicitudes';
+import { ReservasDelDia } from './subdireccion/Reservas';
 
-type Pestana = 'reservar' | 'mias' | 'inventario' | 'danio' | 'avisos';
+type Pestana = 'panel' | 'solicitudes' | 'todas' | 'reservar' | 'mias' | 'inventario' | 'danio' | 'avisos';
 const CONSULTA_AVISOS_MS = 30_000;
 
 /**
  * Una sola app con pestañas según los permisos de la persona (ADR 0003):
- * docentes y estudiantes reservan y hacen check-in (E11); aseo y mantención cuentan inventario y
- * reportan daños (E12). Todos ven sus avisos.
+ * Subdirección (dashboard:ver) entra a su panel con gráficos, decide solicitudes y ve las reservas
+ * de todas las cuentas por día; docentes y estudiantes reservan y hacen check-in (E11); aseo y
+ * mantención cuentan inventario y reportan daños (E12). Todos ven sus avisos.
  */
 export default function App() {
   return (
@@ -35,20 +39,29 @@ function Contenido() {
   const [noLeidas, setNoLeidas] = useState(0);
   const [escaner, setEscaner] = useState(false);
   const [version, setVersion] = useState(0); // fuerza recargar listas tras reservar o hacer check-in
+  const [porDecidir, setPorDecidir] = useState(0);
+  const [estadoReservas, setEstadoReservas] = useState<string | undefined>(undefined);
+  const supervisa = sesion ? sesion.usuario.permisos.includes('dashboard:ver') : false;
+  const aprueba = sesion ? sesion.usuario.permisos.includes('reserva:aprobar') : false;
 
-  const pestanas: { id: Pestana; texto: string }[] = sesion
+  const pestanas: { id: Pestana; texto: string; contador?: number }[] = sesion
     ? [
-        ...(tiene('reserva:solicitar') ? [{ id: 'reservar' as const, texto: 'Reservar' }, { id: 'mias' as const, texto: 'Mis reservas' }] : []),
+        ...(supervisa ? [{ id: 'panel' as const, texto: 'Panel' }] : []),
+        ...(aprueba ? [{ id: 'solicitudes' as const, texto: 'Solicitudes', contador: porDecidir }] : []),
+        ...(supervisa ? [{ id: 'todas' as const, texto: 'Reservas' }] : []),
+        ...(tiene('reserva:solicitar') ? [{ id: 'reservar' as const, texto: 'Reservar' }] : []),
+        ...(tiene('reserva:solicitar') && !supervisa ? [{ id: 'mias' as const, texto: 'Mis reservas' }] : []),
         ...(tiene('inventario:registrar') ? [{ id: 'inventario' as const, texto: 'Inventario' }] : []),
         ...(tiene('danio:reportar') ? [{ id: 'danio' as const, texto: 'Daños' }] : []),
-        { id: 'avisos' as const, texto: noLeidas ? `Avisos (${noLeidas})` : 'Avisos' },
+        { id: 'avisos' as const, texto: 'Avisos', contador: noLeidas },
       ]
     : [];
 
   const entrar = useCallback((s: Sesion | null) => {
     setSesion(s);
     if (!s) return;
-    setPestana(s.usuario.permisos.includes('reserva:solicitar') ? 'reservar' : s.usuario.permisos.includes('inventario:registrar') ? 'inventario' : 'avisos');
+    const p = s.usuario.permisos;
+    setPestana(p.includes('dashboard:ver') ? 'panel' : p.includes('reserva:solicitar') ? 'reservar' : p.includes('inventario:registrar') ? 'inventario' : 'avisos');
     registrarPush(); // silencioso: en Expo Go no aplica
   }, []);
 
@@ -59,6 +72,7 @@ function Contenido() {
 
   const contarAvisos = useCallback(() => {
     api<{ total: number }>('/notificaciones/no-leidas').then((r) => setNoLeidas(r.total)).catch(() => {});
+    if (tiene('reserva:aprobar')) api<unknown[]>('/solicitudes/pendientes').then((l) => setPorDecidir(l.length)).catch(() => {});
   }, []);
   useEffect(() => {
     if (!sesion) return;
@@ -92,6 +106,9 @@ function Contenido() {
       </View>
 
       <View style={{ flex: 1 }}>
+        {pestana === 'panel' && <PanelSubdireccion irA={(d, e) => { if (d === 'reservas') setEstadoReservas(e ?? ''); setPestana(d === 'reservas' ? 'todas' : 'solicitudes'); }} />}
+        {pestana === 'solicitudes' && <Solicitudes alDecidir={() => { contarAvisos(); setVersion((v) => v + 1); }} />}
+        {pestana === 'todas' && <ReservasDelDia estadoInicial={estadoReservas} alCambiar={() => { contarAvisos(); setVersion((v) => v + 1); }} />}
         {pestana === 'reservar' && <Reservar alReservar={() => setVersion((v) => v + 1)} />}
         {pestana === 'mias' && <MisReservas abrirEscaner={() => setEscaner(true)} version={version} />}
         {pestana === 'inventario' && <Inventario />}
@@ -103,7 +120,14 @@ function Contenido() {
         <View style={{ flexDirection: 'row' }}>
           {pestanas.map((p) => (
             <Pressable key={p.id} onPress={() => { setPestana(p.id); if (p.id === 'avisos') contarAvisos(); }} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderTopWidth: 3, borderTopColor: pestana === p.id ? colores.acento : 'transparent' }}>
-              <Text style={{ fontSize: 13, fontWeight: pestana === p.id ? '700' : '500', color: pestana === p.id ? colores.acento : colores.suave }}>{p.texto}</Text>
+              <View>
+                <Text numberOfLines={1} style={{ fontSize: pestanas.length > 4 ? 12 : 13, fontWeight: pestana === p.id ? '700' : '500', color: pestana === p.id ? colores.acento : colores.suave }}>{p.texto}</Text>
+                {!!p.contador && (
+                  <View style={{ position: 'absolute', top: -10, right: -12, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: '#f2a01e', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{p.contador > 99 ? '99+' : p.contador}</Text>
+                  </View>
+                )}
+              </View>
             </Pressable>
           ))}
         </View>

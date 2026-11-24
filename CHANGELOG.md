@@ -13,6 +13,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 - `GET /espacios` responde 400 (no 500) si `sedeId` no es un identificador válido.
 
 ### Agregado
+- **App móvil para Subdirección (v1.2.0):** panel con gráficos animados y tocables (ocupación por
+  sala, uso por hora, mapa de calor, capacidad por jornada, reservas por estado y no usadas), con
+  “hoy” por defecto, filtros de período, sede y tipo, y actualización sola cada minuto; **Solicitudes**
+  para aprobar o rechazar con motivo; **Reservas** de todas las cuentas día por día (avanza solo a
+  medianoche), filtrables por cuenta y estado, con detalle para decidir o cancelar con aviso.
+  `GET /dashboard/reservas` incluye `solicitudId`, `solicitanteId` y `codigoEspacio`.
+- **Login de la app como el de la web:** foto del campus y cuentas de demostración abajo.
 - **Días no disponibles (V014):** no se reserva sábado ni domingo; las vacaciones de verano
   (25 de diciembre al 1 de marzo) quedan bloqueadas cada año. Subdirección agrega períodos por días
   completos (00:00 a 23:59) en **Gestión → Días no disponibles**: duración en días, semanas o meses,

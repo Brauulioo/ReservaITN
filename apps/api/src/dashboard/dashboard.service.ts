@@ -41,6 +41,9 @@ export interface FilaEspacio {
 
 export interface FilaReserva {
   reservaId: string;
+  solicitudId: string;
+  solicitanteId: string;
+  codigoEspacio: string;
   inicio: Date;
   fin: Date;
   estado: string;
@@ -285,6 +288,9 @@ export class DashboardService {
   async reservas(q: RangoFechas): Promise<FilaReserva[]> {
     const filas = await this.prisma.$queryRaw<(Omit<FilaReserva, 'horasAprobacion'> & { horasAprobacion: number | null })[]>`
       SELECT t.reserva_id                                      AS "reservaId",
+             t.solicitud_id                                    AS "solicitudId",
+             t.solicitante_usuario_id                          AS "solicitanteId",
+             es.codigo                                         AS "codigoEspacio",
              t.inicio, t.fin,
              t.estado::text                                    AS estado,
              t.espacio,
@@ -304,6 +310,8 @@ export class DashboardService {
         FROM reservas.v_reserva_trazabilidad t
         JOIN reservas.solicitud s       ON s.id = t.solicitud_id
         JOIN reservas.tipo_actividad ta ON ta.codigo = t.tipo_actividad
+        JOIN reservas.reserva rr        ON rr.id = t.reserva_id
+        JOIN institucion.espacio es     ON es.id = rr.espacio_id
         JOIN institucion.sede se        ON se.id = t.sede_id
         JOIN seguridad.usuario us       ON us.id = t.solicitante_usuario_id
         JOIN seguridad.persona ps       ON ps.id = us.persona_id
