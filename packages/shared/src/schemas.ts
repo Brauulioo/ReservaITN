@@ -127,7 +127,7 @@ export function reservaCreateSchema(ahora: () => Date = () => new Date()) {
         err(`Solo se puede reservar con ${HORARIO.anticipacionMaxDias} días de anticipación`, 'inicio');
       if (r.inicio.toDateString() !== r.fin.toDateString())
         err('La reserva debe empezar y terminar el mismo día', 'fin');
-      if (r.inicio.getDay() === 0) err('No se reserva en domingo', 'inicio');
+      if (r.inicio.getDay() === 0 || r.inicio.getDay() === 6) err('No se reserva los fines de semana (sábado ni domingo)', 'inicio');
       if (r.repetirHasta) {
         if (r.repetirHasta <= r.inicio) err('La repetición debe terminar después de la primera fecha', 'repetirHasta');
         if (r.repetirHasta.getTime() - r.inicio.getTime() > 200 * 86_400_000)
@@ -188,10 +188,10 @@ export const filaPlanificacionSchema = z.object({
   asignatura: z.string().trim().min(1),
   docenteRut: rutSchema.optional(),
   diaSemana: z.coerce
-    .number({ invalid_type_error: 'Debe ser un número del 1 (lunes) al 6 (sábado)' })
+    .number({ invalid_type_error: 'Debe ser un número del 1 (lunes) al 5 (viernes)' })
     .int()
-    .min(1, 'Debe ser un número del 1 (lunes) al 6 (sábado)')
-    .max(6, 'Debe ser un número del 1 (lunes) al 6 (sábado)'),
+    .min(1, 'Debe ser un número del 1 (lunes) al 5 (viernes)')
+    .max(5, 'Debe ser un número del 1 (lunes) al 5 (viernes)'),
   horaInicio: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:MM'),
   horaFin: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:MM'),
   inscritos: z.coerce
@@ -215,3 +215,20 @@ export const inspeccionSchema = z.object({
     .array(z.object({ itemId: z.string().uuid(), cantidad: z.number().int().nonnegative() }))
     .min(1),
 });
+
+/**
+ * Período no disponible para reservar (V014): días completos, de 00:00 a 23:59, en todas las sedes
+ * o en una. `repetirAnios` = cuántos años más se repite en las mismas fechas (0 = solo ese año).
+ */
+export const periodoNoDisponibleSchema = z
+  .object({
+    motivo: z.string().trim().min(3, 'Indique el motivo (mínimo 3 caracteres)').max(120),
+    desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha con formato AAAA-MM-DD'),
+    hasta: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha con formato AAAA-MM-DD'),
+    sedeId: z.string().uuid().nullish(),
+    repetirAnios: z.coerce.number().int().min(0).max(30).default(0),
+    cancelarAfectadas: z.boolean().default(false),
+  })
+  .refine((p) => p.hasta >= p.desde, { message: 'La fecha final debe ser igual o posterior a la inicial', path: ['hasta'] })
+  .refine((p) => (Date.parse(p.hasta) - Date.parse(p.desde)) / 86_400_000 <= 366, { message: 'Un período dura como máximo un año', path: ['hasta'] });
+export type PeriodoNoDisponible = z.infer<typeof periodoNoDisponibleSchema>;

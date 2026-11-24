@@ -74,7 +74,7 @@ export class ReservasService {
     if (!actividad) throw new BadRequestException(`Tipo de actividad desconocido: ${dto.tipoActividad}`);
 
     const fechas = await this.fechasDeLaSerie(dto, espacio.edificio_id);
-    if (!fechas.length) throw new BadRequestException('Todas las fechas de la serie caen en días no hábiles');
+    if (!fechas.length) throw new BadRequestException(dto.repetirHasta ? 'Todas las fechas de la serie caen en días no disponibles' : 'Ese día no está disponible para reservas (fin de semana, vacaciones o día bloqueado por Subdirección)');
 
     return this.prisma.conActor(u.id, async (tx) => {
       // Primero se liberan las pendientes vencidas de este espacio (D12: vencimiento exacto)
@@ -277,7 +277,7 @@ export class ReservasService {
     return { ...traza, eventos, linea };
   }
 
-  /** Fechas de la reserva o de la serie semanal, omitiendo los días no hábiles de la sede (D13). */
+  /** Fechas de la reserva o de la serie semanal, omitiendo los días no disponibles de la sede (D13, V014). */
   private async fechasDeLaSerie(dto: ReservaCreate, edificioId: string) {
     // `repetirHasta` llega como fecha sin hora: se compara como día calendario, incluido
     const ultimoDia = dto.repetirHasta ? dto.repetirHasta.toISOString().slice(0, 10) : diaChile(dto.inicio);
@@ -295,13 +295,11 @@ export class ReservasService {
       fechas.push({ inicio, fin: masSemanas(dto.fin, semana) });
     }
     const edificio = await this.prisma.edificio.findUniqueOrThrow({ where: { id: edificioId } });
-    const noHabiles = await this.prisma.dia_no_habil.findMany({
-      where: {
-        OR: [{ sede_id: null }, { sede_id: edificio.sede_id }],
-        fecha: { gte: new Date(diaChile(dto.inicio)), lte: new Date(ultimoDia) },
-      },
-    });
-    const excluidas = new Set(noHabiles.map((n) => n.fecha.toISOString().slice(0, 10)));
+    // Fines de semana, días no hábiles y períodos no disponibles de la sede (V014)
+    const disponibles = await this.prisma.$queryRaw<{ d: Date }[]>`
+      SELECT institucion.dias_disponibles(${edificio.sede_id}::uuid, ${diaChile(dto.inicio)}::date, ${ultimoDia}::date) AS d`;
+    const libres = new Set(disponibles.map((x) => x.d.toISOString().slice(0, 10)));
+    const excluidas = new Set(fechas.map((f) => diaChile(f.inicio)).filter((d) => !libres.has(d)));
     return fechas.filter((f) => !excluidas.has(diaChile(f.inicio)));
   }
 

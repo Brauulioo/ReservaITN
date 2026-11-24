@@ -24,7 +24,7 @@ export async function sesion(email: string): Promise<UsuarioSesion> {
  * reales (las transacciones se confirman) y así no chocan con corridas anteriores.
  */
 export function lunesAlAzar(): Date {
-  const d = new Date(2090 + Math.floor(Math.random() * 9), 0, 1, 0, 0);
+  const d = new Date(2090 + Math.floor(Math.random() * 60), 0, 1, 0, 0);
   d.setDate(d.getDate() + ((8 - d.getDay()) % 7) + 7 * Math.floor(Math.random() * 50));
   return d;
 }

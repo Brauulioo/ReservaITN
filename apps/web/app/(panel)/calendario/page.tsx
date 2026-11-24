@@ -10,7 +10,7 @@ interface Espacio {
   codigo: string;
   nombre: string;
   capacidad: number;
-  edificio: { sede: { nombre: string } };
+  edificio: { sede: { id: string; nombre: string } };
 }
 interface Ocupacion {
   id: string;
@@ -23,7 +23,7 @@ interface Ocupacion {
 const PX_POR_MINUTO = 0.9; // 15 h × 60 min × 0,9 = 810 px de alto
 const INICIO_MIN = HORARIO.aperturaHora * 60;
 const FIN_MIN = HORARIO.cierreHora * 60;
-const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie']; // sábado y domingo no se reserva (V014)
 
 const lunesDe = (d: Date) => {
   const r = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -36,7 +36,7 @@ const minutosDelDia = (d: Date) => d.getHours() * 60 + d.getMinutes();
 const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 
 /**
- * Calendario semanal de un espacio (R3): lunes a sábado, en el horario institucional, con cada
+ * Calendario semanal de un espacio (R3): lunes a viernes, en el horario institucional, con cada
  * reserva en su posición exacta al minuto. Clic en un hueco libre → formulario de reserva con el
  * espacio, el día y la hora ya puestos.
  */
@@ -47,6 +47,7 @@ export default function Calendario() {
   const [lunes, setLunes] = useState(() => lunesDe(new Date()));
   const [ocupaciones, setOcupaciones] = useState<Ocupacion[]>([]);
   const [seleccion, setSeleccion] = useState<Ocupacion | null>(null);
+  const [bloqueados, setBloqueados] = useState<Record<string, string>>({});
   const puedeReservar = sesion()?.usuario.permisos.includes('reserva:solicitar') ?? false;
 
   useEffect(() => {
@@ -67,13 +68,22 @@ export default function Calendario() {
     setSeleccion(null);
   }, [espacioId, lunes]);
 
+  // Días bloqueados de la semana (vacaciones, recesos de Subdirección)
+  const sedeId = espacios.find((e) => e.id === espacioId)?.edificio.sede.id;
+  useEffect(() => {
+    if (!sedeId) return;
+    api<{ fecha: string; motivo: string }[]>(`/calendario/no-disponibles?desde=${dia(lunes)}&hasta=${dia(sumarDias(lunes, 4))}&sedeId=${sedeId}`)
+      .then((l) => setBloqueados(Object.fromEntries(l.map((x) => [x.fecha, x.motivo]))))
+      .catch(() => setBloqueados({}));
+  }, [sedeId, lunes]);
+
   const dias = useMemo(() => DIAS.map((nombre, i) => ({ nombre, fecha: sumarDias(lunes, i) })), [lunes]);
   const hoy = dia(new Date());
   const espacio = espacios.find((e) => e.id === espacioId);
   const alto = (FIN_MIN - INICIO_MIN) * PX_POR_MINUTO;
 
   function clicEnDia(e: MouseEvent<HTMLDivElement>, fecha: Date) {
-    if (!puedeReservar || e.target !== e.currentTarget) return; // solo sobre el fondo libre
+    if (!puedeReservar || e.target !== e.currentTarget || bloqueados[dia(fecha)]) return; // solo sobre el fondo libre
     const y = e.clientY - e.currentTarget.getBoundingClientRect().top;
     const minuto = Math.floor((INICIO_MIN + y / PX_POR_MINUTO) / 15) * 15; // al cuarto de hora
     const desde = Math.min(minuto, FIN_MIN - 60);
@@ -105,12 +115,13 @@ export default function Calendario() {
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <strong>
               Semana del {lunes.toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })} al{' '}
-              {sumarDias(lunes, 5).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {sumarDias(lunes, 4).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
             </strong>
             <span className="leyenda">
               <span className="evento-APROBADA muestra" /> Aprobada
               <span className="evento-PENDIENTE muestra" /> Pendiente
               <span className="evento-PLANIFICACION muestra" /> Clase planificada
+              <span className="cal-bloqueado muestra" /> No disponible
             </span>
           </div>
           {puedeReservar && <p className="etiqueta" style={{ margin: 0 }}>Haz clic en un espacio libre para reservar ese horario.</p>}
@@ -130,13 +141,16 @@ export default function Calendario() {
               </div>
               {dias.map((d) => {
                 const delDia = ocupaciones.filter((o) => dia(new Date(o.inicio)) === dia(d.fecha));
+                const bloqueo = bloqueados[dia(d.fecha)];
                 return (
                   <div
                     key={d.nombre}
-                    className={`cal-dia ${puedeReservar ? 'cal-clic' : ''}`}
+                    className={`cal-dia ${bloqueo ? 'cal-bloqueado' : puedeReservar ? 'cal-clic' : ''}`}
+                    title={bloqueo ? `No disponible: ${bloqueo}` : undefined}
                     style={{ height: alto, backgroundSize: `100% ${60 * PX_POR_MINUTO}px` }}
                     onClick={(e) => clicEnDia(e, d.fecha)}
                   >
+                    {bloqueo && <span className="cal-bloqueo-texto">No disponible<br />{bloqueo}</span>}
                     {delDia.map((o) => {
                       const ini = Math.max(minutosDelDia(new Date(o.inicio)), INICIO_MIN);
                       const fin = Math.min(minutosDelDia(new Date(o.fin)), FIN_MIN);

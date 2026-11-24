@@ -15,13 +15,17 @@ export function horaChile(d: Date): number {
   return Number(p.hour) + Number(p.minute) / 60;
 }
 
-/** Días hábiles (lun–sáb) en el rango × horas del horario institucional. */
+/**
+ * Días hábiles (lunes a viernes) en el rango × horas del horario institucional. Referencia sin
+ * base de datos; el dashboard descuenta además feriados y períodos no disponibles (diasDisponibles).
+ */
 export function horasDisponiblesPorSala(desde: Date, hasta: Date): number {
   const horasDia = HORARIO.cierreHora - HORARIO.aperturaHora;
   let dias = 0;
-  for (let d = new Date(desde); d < hasta; d.setDate(d.getDate() + 1)) if (d.getDay() !== 0) dias++;
+  for (let d = new Date(desde); d < hasta; d.setDate(d.getDate() + 1)) if (d.getDay() !== 0 && d.getDay() !== 6) dias++;
   return dias * horasDia;
 }
+const fechaChile = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
 
 export interface FilaEspacio {
   espacioId: string;
@@ -65,6 +69,13 @@ export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Reservas aprobadas de uso real (la mantención no cuenta como uso, B3). */
+  /** Días en que se puede reservar dentro del período (sin fines de semana, feriados ni períodos bloqueados, V014). */
+  async diasDisponibles(q: RangoFechas): Promise<string[]> {
+    const filas = await this.prisma.$queryRaw<{ d: Date }[]>`
+      SELECT institucion.dias_disponibles(${q.sedeId ?? null}::uuid, ${fechaChile(q.desde)}::date, ${fechaChile(new Date(q.hasta.getTime() - 1))}::date) AS d`;
+    return filas.map((f) => f.d.toISOString().slice(0, 10));
+  }
+
   reservasAprobadas(q: RangoFechas, espacioIds?: string[]) {
     return this.prisma.reserva.findMany({
       where: {
@@ -90,11 +101,11 @@ export class DashboardService {
     const salas = ids.length;
     const { aperturaHora: H0, cierreHora: H1 } = HORARIO;
 
-    // Días hábiles del período por día de la semana (0 = lunes … 5 = sábado), en hora de Chile
-    const diasPorDia = [0, 0, 0, 0, 0, 0];
-    for (let d = new Date(q.desde); d < q.hasta; d = new Date(d.getTime() + 86_400_000)) {
-      const dia = diaSemanaChile(d);
-      if (dia <= 5) diasPorDia[dia]++;
+    // Días disponibles del período por día de la semana (0 = lunes … 4 = viernes), en hora de Chile
+    const diasPorDia = [0, 0, 0, 0, 0];
+    for (const d of ocu.dias) {
+      const dia = diaSemanaChile(new Date(`${d}T12:00:00-03:00`));
+      if (dia <= 4) diasPorDia[dia]++;
     }
 
     // Mapa de calor: horas ocupadas en cada bloque de una hora ÷ horas posibles (días × salas)
@@ -111,7 +122,7 @@ export class DashboardService {
       const fin = Math.min(r.fin.getTime(), q.hasta.getTime());
       if (fin <= ini) continue;
       const dia = diaSemanaChile(new Date(ini));
-      if (dia > 5) continue;
+      if (dia > 4) continue;
       const h0 = horaChile(new Date(ini));
       const h1 = h0 + (fin - ini) / 3_600_000;
       for (let h = H0; h < H1; h++) calor[dia][h - H0] += Math.max(0, Math.min(h1, h + 1) - Math.max(h0, h));
@@ -135,7 +146,7 @@ export class DashboardService {
     const total = contar(['PENDIENTE', 'APROBADA', 'RECHAZADA', 'CANCELADA', 'LIBERADA', 'EXPIRADA']);
     const noUsadas = contar(['CANCELADA', 'LIBERADA', 'EXPIRADA']);
     const horasOcupadasTotal = ocu.porEspacio.reduce((s, e) => s + e.horasReservadas, 0);
-    const horasDisponiblesTotal = salas * horasDisponiblesPorSala(q.desde, q.hasta);
+    const horasDisponiblesTotal = salas * ocu.dias.length * (H1 - H0);
 
     return {
       rango: ocu.rango,
@@ -155,7 +166,7 @@ export class DashboardService {
       })),
       mapaCalor: {
         horas: Array.from({ length: H1 - H0 }, (_, i) => H0 + i),
-        dias: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        dias: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
         // proporción de salas ocupadas en cada bloque (0 a 1)
         valores: calor.map((fila, d) => fila.map((h) => (diasPorDia[d] && salas ? Math.round((h / (diasPorDia[d] * salas)) * 1000) / 1000 : 0))),
       },
@@ -193,9 +204,9 @@ export class DashboardService {
         edificio: { select: { sede: { select: { nombre: true } } } },
       },
     });
-    const reservas = await this.reservasAprobadas(q, espacios.map((e) => e.id));
+    const [reservas, dias] = await Promise.all([this.reservasAprobadas(q, espacios.map((e) => e.id)), this.diasDisponibles(q)]);
     const rango = { inicio: q.desde, fin: q.hasta };
-    const disponibles = horasDisponiblesPorSala(q.desde, q.hasta);
+    const disponibles = dias.length * (HORARIO.cierreHora - HORARIO.aperturaHora);
 
     const porEspacio: FilaEspacio[] = espacios
       .map((e) => {
@@ -221,6 +232,7 @@ export class DashboardService {
       totalReservas: reservas.length,
       porEspacio,
       reservas,
+      dias,
     };
   }
 

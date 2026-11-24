@@ -20,7 +20,7 @@ class DashboardController {
   @RequierePermiso('dashboard:ver')
   @Get('ocupacion')
   async ocupacion(@Query(new ZodPipe(rangoFechasSchema)) q: RangoFechas) {
-    const { reservas: _, ...resto } = await this.svc.ocupacion(q);
+    const { reservas: _, dias: __, ...resto } = await this.svc.ocupacion(q);
     return resto;
   }
 

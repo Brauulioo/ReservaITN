@@ -7,7 +7,7 @@ Actualizar en cada PR que avance un requisito.
 |---|---|---|---|---|---|---|
 | R1 | Impedir reservas dobles | Debe | E6 | `reserva_sin_choque` (EXCLUDE, incluye pendientes), V006 | `packages/db/pruebas/reservas.test.ts` (200 casos), `flujo-reservas.db.test.ts` (20 simultáneas) | ✅ |
 | R2 | Centralizar solicitudes | Debe | E6 | `reservas.solicitud` + `POST /reservas`, web `reservar/` (precisión al minuto), app móvil | `flujo-reservas.db.test.ts` | ✅ |
-| R3 | Disponibilidad visible | Debe | E11 | `GET /reservas/ocupacion`, web `calendario/` (semana por espacio, al minuto) y `reservar/`, móvil `Disponibilidad` | — | ✅ |
+| R3 | Disponibilidad visible | Debe | E11 | `GET /reservas/ocupacion`, web `calendario/` (semana por espacio, al minuto, con días no disponibles sombreados) y `reservar/`, móvil `Disponibilidad`; días no disponibles V014 y web `dias-no-disponibles/` | `calendario.test.ts`, `calendario.db.test.ts` | ✅ |
 | R4 | Aprobación por rol | Debe | E6 | `regla_aprobacion` + `reservas.puede_aprobar` (V010), web `aprobaciones` | `aprobacion_reglas.test.ts`, `flujo-reservas.db.test.ts` | ✅ |
 | R5 | Cancelación por Subdirección + aviso | Debe | E6 | `reservas.cancelacion` (V011, motivo obligatorio para reservas ajenas), botón Cancelar en el dashboard | `reservas.test.ts` (V011), `flujo-reservas.db.test.ts` | ✅ |
 | R6 | Notificaciones | Debe | E8 | Bandeja en la app (con contador) + correo con reintentos + push por Expo (registro del celular, dispositivos inexistentes se eliminan) | `correos.db.test.ts` | ✅ correo y app · 🟡 push requiere compilación EAS (Expo Go no recibe push) |

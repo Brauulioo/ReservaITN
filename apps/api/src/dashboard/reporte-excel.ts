@@ -235,7 +235,7 @@ function hojaResumen(wb: ExcelJS.Workbook, d: DatosReporte) {
   ws.mergeCells(`A${f}:E${f + 1}`);
   nota.value =
     'Índice de ocupación = horas de reservas aprobadas (sin mantención) ÷ horas disponibles ' +
-    '(lunes a sábado, 08:00 a 23:00). Detalle en las hojas "Ocupación por espacio", "Reservas" y "Uso por jornada".';
+    '(lunes a viernes hábiles, sin vacaciones ni días bloqueados, 08:00 a 23:00). Detalle en las hojas "Ocupación por espacio", "Reservas" y "Uso por jornada".';
   nota.font = { name: FUENTE, size: 9, italic: true, color: { argb: COLOR.suave } };
   nota.alignment = { wrapText: true, vertical: 'top' };
 }

@@ -483,3 +483,34 @@ fieldset.grupo legend { color: var(--muted); font-size: 0.85rem; padding: 0 4px;
   .inicio-banner-cuerpo { padding: 18px; }
   .inicio-banner-filtros { width: 100%; }
 }
+
+/* ───────── Días no disponibles (V014) ───────── */
+.ndisp { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 1100px) { .ndisp { grid-template-columns: minmax(0, 1fr); } }
+.ndisp-form h2 { margin-top: 0; }
+.ndisp-bloque { margin: 1rem 0 0.75rem; display: grid; gap: 0.45rem; }
+.etiqueta-campo { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.ndisp-cantidad { display: flex; gap: 0.4rem; }
+.ndisp-cantidad input { width: 3.6rem !important; flex: none; padding-inline: 0.5rem; }
+.ndisp-form .campos { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.ndisp-cantidad select { flex: 1; min-width: 0; }
+.ndisp-repetir { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.ndisp-anios { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; }
+.ndisp-anios input { width: 4.5rem; }
+.ndisp-resumen { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.8rem 0.95rem; border-radius: 12px; background: var(--info-bg); color: var(--info); margin-top: 0.5rem; }
+.ndisp-resumen div { display: grid; gap: 0.15rem; }
+.ndisp-resumen span { color: var(--text); font-size: 0.88rem; }
+.ndisp-afectadas { margin-top: 0.75rem; padding: 0.8rem 0.95rem; border-radius: 12px; background: var(--warn-bg); }
+.ndisp-afectadas p { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.4rem; color: var(--warn); }
+.ndisp-afectadas p strong { color: var(--warn); }
+.ndisp-afectadas ul { margin: 0 0 0.6rem; padding-left: 1.2rem; font-size: 0.86rem; color: var(--text); }
+.ndisp-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.ndisp-lista li { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr) auto; gap: 0.85rem; align-items: center; padding: 0.7rem 0.8rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.ndisp-fecha { display: grid; text-align: center; padding: 0.4rem 0.2rem; border-radius: 10px; background: var(--surface-2); font-size: 0.82rem; color: var(--muted); }
+.ndisp-fecha strong { font-size: 0.95rem; color: var(--accent); }
+.ndisp-info { display: grid; gap: 0.2rem; min-width: 0; }
+.ndisp-info > span { font-size: 0.84rem; color: var(--muted); }
+.ndisp-info .badge { justify-self: start; }
+@media (max-width: 520px) { .ndisp-lista li { grid-template-columns: 4.4rem minmax(0, 1fr); } .ndisp-lista li > button { grid-column: 1 / -1; justify-self: end; } }
+.cal-dia.cal-bloqueado, .muestra.cal-bloqueado { background-color: var(--surface-2); background-image: repeating-linear-gradient(135deg, transparent 0 9px, color-mix(in srgb, var(--muted) 14%, transparent) 9px 11px); cursor: not-allowed; }
+.cal-bloqueo-texto { position: sticky; top: 8px; display: block; margin: 8px; padding: 0.45rem 0.55rem; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 0.78rem; text-align: center; }

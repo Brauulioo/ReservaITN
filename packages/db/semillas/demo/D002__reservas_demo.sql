@@ -67,7 +67,7 @@ BEGIN
       date_trunc('week', now() AT TIME ZONE 'America/Santiago')::date - 28,
       date_trunc('week', now() AT TIME ZONE 'America/Santiago')::date + 32, interval '1 day') d
   LOOP
-    CONTINUE WHEN extract(isodow FROM dia) > 5; -- solo lunes a viernes
+    CONTINUE WHEN institucion.motivo_no_disponible(NULL, dia) IS NOT NULL; -- solo días hábiles (V014)
     FOR e IN 1 .. array_length(espacios, 1) LOOP
       FOR b IN 1 .. array_length(bloques, 1) LOOP
         h := abs(hashtext(dia::text || '|' || e || '|' || b)) % 100;

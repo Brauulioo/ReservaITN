@@ -52,7 +52,7 @@ flowchart LR
 |---|---|---|---|
 | **Web** | Vercel (Hobby, gratis) | Pantallas para administrar, aprobar, ver el dashboard y reservar. No guarda datos: todo lo pide a la API | `apps/web/vercel.json`, variables `NEXT_PUBLIC_*` |
 | **API** | Render (Free) | Reglas de negocio, permisos, validaciones, reportes Excel. Al iniciar aplica las migraciones pendientes. Corre tareas cada 15 s (cola de avisos) y cada minuto (vencer pendientes y liberar reservas sin check-in) | `render.yaml` |
-| **Base de datos** | Neon (Free) | PostgreSQL 16 gestionado. Las reglas críticas viven aquí: anti-choques (`EXCLUDE`), transiciones de estado, auditoría inmutable, aprobadores por regla | `packages/db/migraciones` (V001–V013) |
+| **Base de datos** | Neon (Free) | PostgreSQL 16 gestionado. Las reglas críticas viven aquí: anti-choques (`EXCLUDE`), transiciones de estado, auditoría inmutable, aprobadores por regla | `packages/db/migraciones` (V001–V014) |
 | **App móvil** | Expo EAS Build (gratis) | Compila el APK de Android en la nube. Reservar, mis reservas, check-in por QR, avisos, inventario y daños | `apps/mobile/eas.json`, proyecto `@jgb-team/reservaitn` |
 | **Push** | Expo Push + Firebase (gratis) | Lleva las notificaciones al celular registrado | `apps/mobile/google-services.json` + clave FCM en Expo |
 | **Correo** | SMTP del ITN | Avisos por correo con reintentos. **En la nube queda en cola hasta configurar `SMTP_URL`** | Variable en Render |
@@ -65,6 +65,8 @@ flowchart LR
    registra quién hizo cada cambio.
 3. Según la regla aplicable, se aprueba sola o queda **pendiente**. El aviso llega a quien debe aprobar
    y, siempre, a **Subdirección** (supervisión total, migración V013).
+   No se reserva sábado ni domingo, ni en vacaciones (25-dic al 1-mar) o días que bloquee
+   Subdirección en **Días no disponibles** (V014).
 4. Cada aviso queda en la **bandeja de la app y de la web**, y entra a una **cola de envío** (correo y push)
    con reintentos crecientes: si un servicio externo falla, la reserva no se pierde.
 5. Al aprobar, rechazar o cancelar (con motivo), el solicitante recibe el aviso en su celular.
@@ -112,7 +114,7 @@ reservaitn/
 │   ├── web/            Next.js 16: app/(panel)/<pantalla>, components/ (Panel, ui), lib/ (api, formato)
 │   └── mobile/         Expo SDK 58: src/docentes, src/mantencion, src/comun · eas.json
 ├── packages/
-│   ├── db/             SQL fuente de verdad: migraciones V001–V013, semillas, pruebas de restricciones
+│   ├── db/             SQL fuente de verdad: migraciones V001–V014, semillas, pruebas de restricciones
 │   └── shared/         roles y permisos, esquemas Zod, reglas (choques, sugerencia, ocupación)
 ├── docs/               guía de inicio, arquitectura, modelo de datos, pruebas, despliegue, web, ADR
 ├── infra/              docker-compose para desarrollo (PostgreSQL + Mailpit)

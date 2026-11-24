@@ -26,7 +26,7 @@ const PERIODOS: { v: Periodo; t: string }[] = [
   { v: 'anterior', t: 'Mes anterior' },
   { v: 'proximas', t: 'Próximas 4 semanas' },
 ];
-const DIAS_LARGOS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const DIAS_LARGOS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes'];
 const pct = (x: number) => `${(x * 100).toLocaleString('es-CL', { maximumFractionDigits: 1 })} %`;
 const num = (x: number) => Math.round(x).toLocaleString('es-CL');
 

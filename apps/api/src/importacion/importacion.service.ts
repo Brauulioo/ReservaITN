@@ -64,15 +64,17 @@ export class ImportacionService {
     if (!periodo) throw new BadRequestException(`El período ${periodoCodigo} no existe`);
     const filas = await this.leerExcel(archivo.buffer);
 
-    const [espacios, clase, noHabiles] = await Promise.all([
+    const [espacios, clase, disponibles] = await Promise.all([
       this.prisma.espacio.findMany({ where: { activo: true }, select: { id: true, codigo: true, capacidad: true } }),
       this.prisma.tipo_actividad.findUniqueOrThrow({ where: { codigo: 'CLASE' } }),
-      this.prisma.dia_no_habil.findMany({ where: { fecha: { gte: periodo.fecha_inicio, lte: periodo.fecha_fin } } }),
+      this.prisma.$queryRaw<{ d: Date }[]>`
+        SELECT institucion.dias_disponibles(NULL, ${periodo.fecha_inicio}::date, ${periodo.fecha_fin}::date) AS d`,
     ]);
     const porCodigo = new Map<string, string[]>();
     for (const e of espacios) porCodigo.set(e.codigo, [...(porCodigo.get(e.codigo) ?? []), e.id]);
-    // Los feriados de una sola sede se resuelven por sede en una versión siguiente; aquí se omiten los comunes
-    const feriados = new Set(noHabiles.filter((n) => !n.sede_id).map((n) => n.fecha.toISOString().slice(0, 10)));
+    // Días disponibles en todas las sedes (sin fines de semana, feriados ni períodos no disponibles, V014).
+    // Un período de una sola sede lo rechaza la base al crear la fila.
+    const diasLibres = new Set(disponibles.map((n) => n.d.toISOString().slice(0, 10)));
     const desde = new Date(`${periodo.fecha_inicio.toISOString().slice(0, 10)}T00:00:00`);
     const hasta = new Date(`${periodo.fecha_fin.toISOString().slice(0, 10)}T23:59:59`);
 
@@ -100,7 +102,7 @@ export class ImportacionService {
         continue;
       }
       const ocurrencias = expandirSemanal(v.data, desde, hasta).filter(
-        (o) => !feriados.has(o.inicio.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' })),
+        (o) => diasLibres.has(o.inicio.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' })),
       );
       try {
         await this.prisma.conActor(u.id, async (tx) => {

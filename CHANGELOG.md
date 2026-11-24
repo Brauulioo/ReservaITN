@@ -6,6 +6,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones 
 ## [Sin publicar] — hacia H4 (13/11/2026) y H5 (27/11/2026)
 
 ### Agregado
+- **Días no disponibles (V014):** no se reserva sábado ni domingo; las vacaciones de verano
+  (25 de diciembre al 1 de marzo) quedan bloqueadas cada año. Subdirección agrega períodos por días
+  completos (00:00 a 23:59) en **Gestión → Días no disponibles**: duración en días, semanas o meses,
+  una sede o todas, repetición anual por N años y vista previa de las reservas afectadas, que puede
+  cancelar avisando a cada solicitante. La base rechaza cualquier reserva en esos días (web, app e
+  importación); la mantención sí se permite. API `GET/POST /calendario/periodos`,
+  `GET /calendario/periodos/afectadas`, `PATCH /calendario/periodos/:id/quitar` y
+  `GET /calendario/no-disponibles`. El calendario sombrea los días bloqueados y muestra lunes a viernes;
+  las series semanales saltan esos días y el dashboard cuenta solo días hábiles.
 - **Inicio de Subdirección con 4 gráficos** en una sola ventana (ocupación por sala, mapa de calor
   día × hora, reservas no usadas, capacidad libre por jornada), filtros de período, sede y tipo, y
   `GET /api/dashboard/inicio` (R12, R14).

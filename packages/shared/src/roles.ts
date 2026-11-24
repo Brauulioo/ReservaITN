@@ -31,6 +31,7 @@ export const PERMISOS = [
   'danio:gestionar',
   'usuario:gestionar',
   'regla:gestionar',
+  'calendario:gestionar',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 

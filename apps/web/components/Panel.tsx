@@ -34,6 +34,7 @@ const MENU: { grupo: string; items: ItemNav[] }[] = [
     items: [
       { href: '/salas', texto: 'Salas y laboratorios', icono: 'edificio', permiso: 'recurso:gestionar' },
       { href: '/importacion', texto: 'Importar planificación', icono: 'subir', permiso: 'planificacion:importar' },
+      { href: '/dias-no-disponibles', texto: 'Días no disponibles', icono: 'calendario', permiso: 'calendario:gestionar' },
       { href: '/mantencion', texto: 'Mantención', icono: 'herramienta', permiso: ['danio:gestionar', 'mantencion:planificar'] },
       { href: '/usuarios', texto: 'Usuarios', icono: 'usuarios', permiso: 'usuario:gestionar' },
     ],

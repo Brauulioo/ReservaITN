@@ -34,6 +34,7 @@ erDiagram
 | El término es posterior al inicio | `CHECK (fin > inicio)` | R19 |
 | La bitácora de reservas no se edita ni se borra | Trigger `eventos_reserva_inmutables` | R7 |
 | Código de sala único por sede; RUT y correo únicos | Índices únicos | — |
+| No se reserva sábado, domingo ni en días o períodos no disponibles (vacaciones 25-dic al 1-mar, recesos de Subdirección, repetibles cada año); la mantención sí | Tabla `institucion.periodo_no_disponible`, función `institucion.motivo_no_disponible()` y trigger `reserva_en_dia_disponible` (V014) | R1, R3 |
 
 Las reservas de **planificación** (Excel) y de **mantención** son filas de `reservas` con otro `origen`,
 por lo que también participan en el anti-choques: el aseo nunca queda programado durante una clase (R15).

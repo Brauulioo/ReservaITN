@@ -43,12 +43,13 @@ Los permisos los calcula la base de datos al iniciar sesión (`seguridad.permiso
 | `/login` | público | E4 | `POST /auth/login` |
 | `/inicio` | sesión | R12, R14 | Con `dashboard:ver` (Subdirección, Dirección Académica, DATD): los 4 gráficos de uso de salas en una ventana, `GET /dashboard/inicio`. El resto: `GET /reservas/mias`, `/notificaciones/mias`, `/solicitudes/pendientes` |
 | `/reservar` | `reserva:solicitar` | R1, R2, R10, R11 | `GET /espacios`, `/sedes`, `/catalogos`, `POST /sugerencia`, `POST /reservas` |
-| `/calendario` | sesión | R3 | `GET /espacios`, `GET /reservas/ocupacion` |
+| `/calendario` | sesión | R3 | `GET /espacios`, `GET /reservas/ocupacion`, `GET /calendario/no-disponibles` (lunes a viernes; sombrea los días bloqueados) |
 | `/mis-reservas` | `reserva:solicitar` | R5, R7, R18 | `GET /reservas/mias`, `POST /reservas/:id/cancelar`, `GET /reservas/:id/historial` |
 | `/aprobaciones` | `reserva:aprobar` | R4, R6 | `GET /solicitudes/pendientes`, `POST /solicitudes/:id/aprobar` · `rechazar` |
 | `/dashboard` | `dashboard:ver` | R7, R12, R13, R14 | `GET /dashboard/ocupacion` · `indicadores` · `reservas` · `reporte.xlsx`, `/proyeccion` |
 | `/salas` | `recurso:gestionar` | R8, R18 | `GET /espacios?todos=true`, `POST /espacios`, `PATCH /espacios/:id`, `/espacios/:id/qr` |
 | `/importacion` | `planificacion:importar` | R9 (E5) | `GET /catalogos` (períodos), `POST /importaciones` (multipart), `GET /importaciones` |
+| `/dias-no-disponibles` | `calendario:gestionar` | R3 | `GET /calendario/periodos`, `GET /calendario/periodos/afectadas`, `POST /calendario/periodos`, `PATCH /calendario/periodos/:id/quitar` |
 | `/mantencion` | `danio:gestionar` · `mantencion:planificar` | R15, R17 | `/mantencion/danios`, `/mantencion/ordenes`, `/mantencion/personal` |
 | `/usuarios` | `usuario:gestionar` | E4 | `GET /usuarios`, `POST /usuarios`, `PATCH /usuarios/:id` |
 | `/notificaciones` | sesión | R6 | `GET /notificaciones/mias`, `PATCH /notificaciones/leidas` · `:id/leida` |

@@ -39,7 +39,7 @@ const fechaHora = (d: string) =>
   new Date(d).toLocaleString('es-CL', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const manana = () => {
   const d = new Date(Date.now() + 86_400_000);
-  if (d.getDay() === 0) d.setDate(d.getDate() + 1); // no se reserva en domingo
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); // sábado y domingo no se reserva
   return d.toLocaleDateString('sv-SE');
 };
 const ESTADOS: Record<string, string> = {
@@ -205,7 +205,7 @@ function Reservar() {
             <label>Asistentes<input type="number" min={1} value={form.asistentes} onChange={(e) => cambiar('asistentes', e.target.value)} required /></label>
           </div>
           <p className="etiqueta" style={{ margin: 0 }}>
-            Horario de {HORARIO.aperturaHora}:00 a {HORARIO.cierreHora}:00, de lunes a sábado. Duración mínima {HORARIO.duracionMinMin} minutos.
+            Horario de {HORARIO.aperturaHora}:00 a {HORARIO.cierreHora}:00, de lunes a viernes (sin vacaciones ni días bloqueados por Subdirección). Duración mínima {HORARIO.duracionMinMin} minutos.
           </p>
 
           <div className="campos">

@@ -24,7 +24,7 @@ interface TipoActividad { codigo: string; nombre: string }
 /** Une el día de `fecha` con la hora de `hora`. */
 const combinar = (fecha: Date, hora: Date) => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate(), hora.getHours(), hora.getMinutes());
 const conHora = (h: number, m: number) => { const d = new Date(); d.setHours(h, m, 0, 0); return d; };
-const manana = () => { const d = new Date(Date.now() + 86_400_000); if (d.getDay() === 0) d.setDate(d.getDate() + 1); return d; };
+const manana = () => { const d = new Date(Date.now() + 86_400_000); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); return d; };
 
 /**
  * Reservar (R2, R3, R10, R11, D13): día y horas al minuto con selectores nativos, actividad,
@@ -148,7 +148,7 @@ export function Reservar({ alReservar }: { alReservar: () => void }) {
         <CampoFechaHora etiqueta="Desde" modo="time" valor={desde} onCambio={(d) => { setDesde(d); limpiar(); }} />
         <CampoFechaHora etiqueta="Hasta" modo="time" valor={hasta} onCambio={(d) => { setHasta(d); limpiar(); }} />
       </View>
-      <Text style={{ color: colores.suave, fontSize: 12 }}>De lunes a sábado, de 08:00 a 23:00. Mínimo 30 minutos.</Text>
+      <Text style={{ color: colores.suave, fontSize: 12 }}>De lunes a viernes, de 08:00 a 23:00 (sin vacaciones ni días bloqueados). Mínimo 30 minutos.</Text>
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Campo etiqueta="Asistentes" value={asistentes} onChangeText={(t) => { setAsistentes(t.replace(/\D/g, '')); limpiar(); }} keyboardType="number-pad" />
       </View>

@@ -50,7 +50,8 @@ INSERT INTO seguridad.permiso (codigo, modulo, descripcion) VALUES
   ('danio:reportar',              'mantencion',   'Reportar daños'),
   ('danio:gestionar',             'mantencion',   'Gestionar órdenes de trabajo'),
   ('usuario:gestionar',           'seguridad',    'Administrar usuarios y roles'),
-  ('regla:gestionar',             'reservas',     'Administrar reglas de aprobación y parámetros')
+  ('regla:gestionar',             'reservas',     'Administrar reglas de aprobación y parámetros'),
+  ('calendario:gestionar',        'institucion',  'Definir días y períodos no disponibles para reservar')
 ON CONFLICT (codigo) DO NOTHING;
 
 -- Matriz rol → permiso (equivalente a packages/shared/src/roles.ts)
@@ -68,6 +69,7 @@ SELECT r.id, p.id
     ('SUBDIRECCION', 'reserva:cancelar_cualquiera'), ('SUBDIRECCION', 'reserva:aprobar_cualquiera'),
     ('SUBDIRECCION', 'dashboard:ver'),
     ('SUBDIRECCION', 'reporte:generar'), ('SUBDIRECCION', 'recurso:gestionar'),
+    ('SUBDIRECCION', 'calendario:gestionar'),
     ('DATD', 'dashboard:ver'), ('DATD', 'reporte:generar'), ('DATD', 'usuario:gestionar'),
     ('DATD', 'regla:gestionar'),
     ('OPERACIONES', 'recurso:gestionar'), ('OPERACIONES', 'planificacion:importar'),

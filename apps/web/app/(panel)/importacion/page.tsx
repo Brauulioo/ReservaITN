@@ -12,7 +12,7 @@ interface Periodo { id: string; codigo: string; nombre: string; fecha_inicio: st
 const COLUMNAS = [
   ['Código sala', 'LAB-INF-1', 'Debe existir en Salas y laboratorios'],
   ['Asignatura', 'Programación I', 'Será el motivo de la reserva'],
-  ['Día', '2', '1 = lunes … 6 = sábado'],
+  ['Día', '2', '1 = lunes … 5 = viernes'],
   ['Hora inicio', '08:30', 'Formato HH:MM'],
   ['Hora fin', '10:00', 'Formato HH:MM'],
   ['Inscritos', '32', 'Número de estudiantes'],

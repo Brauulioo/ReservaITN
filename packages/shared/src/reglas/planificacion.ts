@@ -9,7 +9,7 @@ export function expandirSemanal(fila: FilaPlanificacion, desde: Date, hasta: Dat
   const [hi, mi] = fila.horaInicio.split(':').map(Number);
   const [hf, mf] = fila.horaFin.split(':').map(Number);
   const dia = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
-  // Avanzar hasta el primer día de la semana pedido (1 = lunes … 6 = sábado)
+  // Avanzar hasta el primer día de la semana pedido (1 = lunes … 5 = viernes)
   while (dia.getDay() !== fila.diaSemana) dia.setDate(dia.getDate() + 1);
 
   const out: Intervalo[] = [];
