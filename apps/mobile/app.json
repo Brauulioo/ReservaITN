@@ -35,15 +35,16 @@
         "expo-image-picker",
         {
           "cameraPermission": "ReservaITN usa la cámara para tomar la foto de un daño y adjuntarla al reporte.",
-          "photosPermission": "ReservaITN accede a tus fotos solo para adjuntar la imagen de un daño al reporte."
+          "photosPermission": "ReservaITN accede a tus fotos solo para adjuntar la imagen de un daño al reporte.",
+          "microphonePermission": false
         }
       ],
       "expo-notifications"
     ],
-    "owner": "jgb-team",
+    "owner": "brauulioo",
     "extra": {
       "eas": {
-        "projectId": "f4742849-6bb5-4eb9-9bae-8f3acf207afe"
+        "projectId": "f8c5e319-72a5-454b-9702-ccfc382717e5"
       }
     }
   }
