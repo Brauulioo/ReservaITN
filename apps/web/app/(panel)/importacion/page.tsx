@@ -92,7 +92,7 @@ function Importacion() {
         <section className="card" style={{ display: 'grid', gap: '1rem' }}>
           <div className="card-head">
             <h2>Resultado de la carga</h2>
-            <Badge tono={cumple ? 'ok' : 'warn'}>{cumple ? 'Cumple criterio E5 (≥ 98 %)' : 'Bajo el 98 %: revisar errores'}</Badge>
+            <Badge tono={cumple ? 'ok' : 'warn'}>{cumple ? 'Importación correcta' : 'Revisar filas con errores'}</Badge>
           </div>
           <div className="grid">
             <div className="kpi"><span className="etiqueta">Filas importadas</span><span className="valor">{pct(resultado.porcentajeOk)}</span><div className="barra"><span style={{ width: `${resultado.porcentajeOk * 100}%` }} /></div></div>

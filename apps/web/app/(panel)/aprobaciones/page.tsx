@@ -48,7 +48,7 @@ function Aprobaciones() {
 
   return (
     <>
-      <Cabecera miga="Reservas" titulo="Aprobaciones" sub="Solicitudes que su rol puede aprobar según las reglas del ITN (R4)." />
+      <Cabecera miga="Reservas" titulo="Aprobaciones" />
         <section className="card">
           <h2>Solicitudes pendientes</h2>
           {msg && <p className={msg.ok ? 'ok' : 'error'}>{msg.texto}</p>}

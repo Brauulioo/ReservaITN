@@ -195,7 +195,7 @@ function Reservar() {
 
   return (
     <>
-      <Cabecera miga="Reservas" titulo="Nueva reserva" sub="Elija día y hora al minuto; el sistema impide choques y sugiere salas (R1, R10)." />
+      <Cabecera miga="Reservas" titulo="Nueva reserva" />
         <form className="card" onSubmit={enviar} style={{ display: 'grid', gap: '1rem' }}>
           <h2 style={{ margin: 0 }}>Nueva reserva</h2>
 

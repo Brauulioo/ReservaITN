@@ -95,7 +95,7 @@ export default function Calendario() {
 
   return (
     <>
-      <Cabecera miga="Reservas" titulo="Calendario y disponibilidad" sub="Ocupación semanal de cada sala; haga clic en un horario libre para reservarlo (R3)." />
+      <Cabecera miga="Reservas" titulo="Calendario y disponibilidad" />
         <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="fila-controles">
             <label style={{ flex: '1 1 280px' }}>

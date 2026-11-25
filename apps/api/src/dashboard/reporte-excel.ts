@@ -171,7 +171,7 @@ function hojaResumen(wb: ExcelJS.Workbook, d: DatosReporte) {
   }
   f++;
 
-  // Indicadores (Plan de Gestión de Beneficios)
+  // Indicadores
   tituloSeccion(ws, f++, 'Indicadores del período');
   const i = d.indicadores;
   ws.addTable({
@@ -179,28 +179,27 @@ function hojaResumen(wb: ExcelJS.Workbook, d: DatosReporte) {
     ref: `A${f}`,
     headerRow: true,
     style: { theme: 'TableStyleMedium2', showRowStripes: true },
-    columns: [{ name: 'Indicador' }, { name: 'Valor' }, { name: 'Meta' }, { name: 'Beneficio' }],
+    columns: [{ name: 'Indicador' }, { name: 'Valor' }, { name: 'Meta' }],
     rows: [
-      ['Índice de ocupación global', d.ocupacion.indiceGlobal, '+10 pp vs. línea base', 'B3'],
-      ['Reservas aprobadas', i.aprobadas, '—', 'B2'],
-      ['Pendientes de aprobación', i.pendientes, '—', 'B6'],
-      ['Rechazadas', i.rechazadas, '—', 'B6'],
-      ['Canceladas', i.canceladas, '—', 'R5'],
-      ['Expiradas sin respuesta', i.expiradas, '0', 'B6'],
-      ['Liberadas por falta de check-in', i.liberadas, '—', 'B3'],
-      ['Reservas no usadas', i.B3_reservasNoUsadas, '≤ 10 %', 'B3'],
-      ['Tiempo promedio de aprobación (horas)', i.B6_tiempoPromedioAprobacionHoras ?? '—', '≤ 24 h', 'B6'],
-      ['Reservas con trazabilidad completa', i.B6_trazabilidadCompleta, '100 %', 'B6'],
+      ['Índice de ocupación global', d.ocupacion.indiceGlobal, '+10 pp vs. línea base'],
+      ['Reservas aprobadas', i.aprobadas, '—'],
+      ['Pendientes de aprobación', i.pendientes, '—'],
+      ['Rechazadas', i.rechazadas, '—'],
+      ['Canceladas', i.canceladas, '—'],
+      ['Expiradas sin respuesta', i.expiradas, '0'],
+      ['Liberadas por falta de check-in', i.liberadas, '—'],
+      ['Reservas no usadas', i.B3_reservasNoUsadas, '≤ 10 %'],
+      ['Tiempo promedio de aprobación (horas)', i.B6_tiempoPromedioAprobacionHoras ?? '—', '≤ 24 h'],
+      ['Reservas con trazabilidad completa', i.B6_trazabilidadCompleta, '100 %'],
     ],
   });
-  estilizarTabla(ws, f, 4, 10, { centradas: [3, 4] });
+  estilizarTabla(ws, f, 3, 10, { centradas: [3] });
   const filaPct = (n: number) => ws.getCell(`B${f + n}`);
   [1, 8, 10].forEach((n) => (filaPct(n).numFmt = '0.0%'));
   filaPct(9).numFmt = '0.0';
   for (let n = f + 1; n <= f + 10; n++) {
     ws.getCell(`B${n}`).alignment = { horizontal: 'right' };
     ws.getCell(`C${n}`).alignment = { horizontal: 'center' };
-    ws.getCell(`D${n}`).alignment = { horizontal: 'center' };
   }
   f += 12;
 
@@ -416,7 +415,7 @@ function hojaJornadas(wb: ExcelJS.Workbook, d: DatosReporte) {
   const lineas = [
     `Mayor uso: ${orden.slice(0, 3).map((b) => `${b.nombre} (${b.horas.toFixed(1)} h)`).join(', ')}.`,
     `Menor uso: ${orden.slice(-3).reverse().map((b) => `${b.nombre} (${b.horas.toFixed(1)} h)`).join(', ')}.`,
-    'Los bloques de menor uso son candidatos para nuevos cursos o arriendo de espacios (beneficios B5 y B8).',
+    'Los bloques de menor uso son candidatos para nuevos cursos o arriendo de espacios.',
   ];
   for (const l of lineas) {
     ws.mergeCells(`A${f}:E${f}`);

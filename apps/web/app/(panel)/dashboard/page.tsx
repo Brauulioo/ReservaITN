@@ -166,7 +166,7 @@ function Dashboard() {
 
   return (
     <>
-      <Cabecera miga="Análisis" titulo="Dashboard y reportes" sub="Ocupación, indicadores y reservas del período, con exportación a Excel (R12, R13)." />
+      <Cabecera miga="Análisis" titulo="Dashboard y reportes" />
         <form className="fila" onSubmit={aplicar} key={`${rango.desde}-${rango.hasta}`}>
           <CamposRango rango={rango} />
           <button type="submit">Generar reporte</button>

@@ -123,7 +123,7 @@ function Mantencion() {
 
   return (
     <>
-      <Cabecera miga="Gestión" titulo="Mantención" sub="Daños reportados, órdenes de trabajo y bloqueo de espacios (R15, R17)." />
+      <Cabecera miga="Gestión" titulo="Mantención" />
         {aviso && <p className={aviso.ok ? 'ok' : 'error'} style={{ margin: 0 }}>{aviso.texto}</p>}
 
         <section className="card">
