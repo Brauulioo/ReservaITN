@@ -2,7 +2,7 @@
 # La web va en Vercel (apps/web/vercel.json) y la base de datos en Neon. Guía: docs/08-despliegue.md
 services:
   - type: web
-    name: reservaitn-api
+    name: reservaitn-api-v2
     runtime: node
     plan: free
     region: oregon
