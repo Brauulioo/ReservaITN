@@ -12,20 +12,20 @@ Gonzalo Pino (ingeniero de sistemas) y Braulio Campos (QA y diseño de la web).
 
 | Qué | Dónde |
 |---|---|
-| **Web** (administración, dashboard, reservas) | **https://reserva-itn-puce.vercel.app** |
-| **API** (estado) | https://reservaitn.onrender.com/api/health |
-| **App Android 1.2.0** (APK de prueba) | [Descargar APK](https://expo.dev/artifacts/eas/Zw9HbudhlsewKRAK3zioR5VfF8pOadTbGtIpONdIDHQ.apk) · historial en [expo.dev · jgb-team/reservaitn](https://expo.dev/accounts/jgb-team/projects/reservaitn/builds) |
+| **Web** (administración, dashboard, reservas) | **https://reserva-itn-v2.vercel.app** |
+| **API** (estado) | https://reservaitn-api-v2.onrender.com/api/health |
+| **App Android 1.3.0** (APK de prueba) | [Descargar APK](https://expo.dev/artifacts/eas/sSVjEFR-vdlEwnmWpn2nQlWtUe3AjRPwLVIRjD9eehA.apk) (disponible hasta cerca del 09/12/2026) · historial en [expo.dev · brauulioo/reservaitn](https://expo.dev/accounts/brauulioo/projects/reservaitn/builds) |
 
 Todas las cuentas de demostración usan la contraseña **`reservaitn`** (datos ficticios):
 
 | Cuenta `@itn.cl` | Rol | Para probar |
 |---|---|---|
-| `subdireccion` | Subdirección | **Control total**: ve y recibe aviso de todas las solicitudes, aprueba y cancela cualquiera (con motivo) |
-| `dir.inf` | Director de Informática + docente | Aprueba lo de Informática y el LAB-INF1 |
-| `dir.enf` | Directora de Enfermería | No ve lo de Informática |
-| `docente` | Docente de Informática | Reserva desde la web o la app; sus solicitudes van al director |
-| `estudiante` | Estudiante de Informática | Reserva salas de estudio con autorización |
-| `academica`, `datd`, `operaciones`, `aseo` | Un rol cada uno | Dashboard, importación, mantención, daños e inventario |
+| `pedro.fernandez` | Subdirección | **Control total**: ve y recibe aviso de todas las solicitudes, aprueba y cancela cualquiera (con motivo) |
+| `matias.soto` | Director de Informática + docente | Aprueba lo de Informática y el LAB-INF1 |
+| `valentina.pizarro` | Directora de Enfermería | No ve lo de Informática |
+| `andrea.munoz` | Docente de Informática | Reserva desde la web o la app; sus solicitudes van al director |
+| `sofia.vargas` | Estudiante de Informática | Reserva salas de estudio con autorización |
+| `camila.rojas`, `francisca.urrutia`, `jorge.araya`, `rosa.contreras` | Dirección Académica, DATD, Operaciones y Aseo | Dashboard, importación, mantención, daños e inventario |
 
 > **Primera visita del día:** la API usa el plan gratis de Render y se duerme tras 15 minutos sin uso.
 > El login muestra "Conectando con el servidor…" y tarda cerca de un minuto en despertarla.
@@ -52,8 +52,8 @@ flowchart LR
 |---|---|---|---|
 | **Web** | Vercel (Hobby, gratis) | Pantallas para administrar, aprobar, ver el dashboard y reservar. No guarda datos: todo lo pide a la API | `apps/web/vercel.json`, variables `NEXT_PUBLIC_*` |
 | **API** | Render (Free) | Reglas de negocio, permisos, validaciones, reportes Excel. Al iniciar aplica las migraciones pendientes. Corre tareas cada 15 s (cola de avisos) y cada minuto (vencer pendientes y liberar reservas sin check-in) | `render.yaml` |
-| **Base de datos** | Neon (Free) | PostgreSQL 16 gestionado. Las reglas críticas viven aquí: anti-choques (`EXCLUDE`), transiciones de estado, auditoría inmutable, aprobadores por regla | `packages/db/migraciones` (V001–V014) |
-| **App móvil** | Expo EAS Build (gratis) | Compila el APK de Android en la nube. Subdirección: panel con gráficos, solicitudes por decidir y reservas de todas las cuentas por día. Resto: reservar, mis reservas, check-in por QR, avisos, inventario y daños | `apps/mobile/eas.json`, proyecto `@jgb-team/reservaitn` |
+| **Base de datos** | Neon (Free) | PostgreSQL 16 gestionado. Las reglas críticas viven aquí: anti-choques (`EXCLUDE`), transiciones de estado, auditoría inmutable, aprobadores por regla | `packages/db/migraciones` (V001–V015) |
+| **App móvil** | Expo EAS Build (gratis) | Compila el APK de Android en la nube. Subdirección: panel con gráficos, solicitudes por decidir y reservas de todas las cuentas por día. Resto: reservar, mis reservas, check-in por QR, avisos, inventario y daños | `apps/mobile/eas.json`, proyecto `@brauulioo/reservaitn` |
 | **Push** | Expo Push + Firebase (gratis) | Lleva las notificaciones al celular registrado | `apps/mobile/google-services.json` + clave FCM en Expo |
 | **Correo** | SMTP del ITN | Avisos por correo con reintentos. **En la nube queda en cola hasta configurar `SMTP_URL`** | Variable en Render |
 
@@ -83,7 +83,7 @@ flowchart LR
 - **Reportes profesionales:** dashboard con ocupación, indicadores, mapa por jornada y Excel de 4 hojas.
 - **Datos de prueba realistas:** ~880 reservas (clases importadas, solicitudes, pendientes y canceladas)
   que se cargan solas una única vez en una base nueva (`D002`).
-- **108 pruebas automáticas** en CI: reglas compartidas, restricciones de la base, flujos completos de la API.
+- **119 pruebas automáticas** en CI: reglas compartidas, restricciones de la base, flujos completos de la API.
 
 ## Estado de los módulos (EDT 1.4)
 
@@ -114,7 +114,7 @@ reservaitn/
 │   ├── web/            Next.js 16: app/(panel)/<pantalla>, components/ (Panel, ui), lib/ (api, formato)
 │   └── mobile/         Expo SDK 58: src/docentes, src/mantencion, src/comun · eas.json
 ├── packages/
-│   ├── db/             SQL fuente de verdad: migraciones V001–V014, semillas, pruebas de restricciones
+│   ├── db/             SQL fuente de verdad: migraciones V001–V015, semillas, pruebas de restricciones
 │   └── shared/         roles y permisos, esquemas Zod, reglas (choques, sugerencia, ocupación)
 ├── docs/               guía de inicio, arquitectura, modelo de datos, pruebas, despliegue, web, ADR
 ├── infra/              docker-compose para desarrollo (PostgreSQL + Mailpit)
@@ -154,8 +154,8 @@ http://localhost:8025. App móvil: `pnpm dev:movil` (configurar `apps/mobile/.en
 |---|---|
 | `pnpm dev` / `pnpm dev:movil` | Levanta API y web / Metro de Expo |
 | `pnpm test` | Pruebas unitarias (reglas y validaciones) |
-| `pnpm --filter @reservaitn/db test:db` | 42 pruebas de restricciones del modelo de datos |
-| `pnpm --filter @reservaitn/api test:db` | 29 pruebas de integración (flujos, concurrencia, correos, push, reportes) |
+| `pnpm --filter @reservaitn/db test:db` | 48 pruebas de restricciones del modelo de datos |
+| `pnpm --filter @reservaitn/api test:db` | 34 pruebas de integración (flujos, concurrencia, correos, push, reportes) |
 | `pnpm typecheck` / `pnpm build` | Tipos y compilación de todo el monorepo |
 | `npx eas-cli build -p android --profile preview` | APK de prueba (desde `apps/mobile`) |
 
@@ -163,7 +163,7 @@ http://localhost:8025. App móvil: `pnpm dev:movil` (configurar `apps/mobile/.en
 
 | Servicio | Se actualiza | Detalle |
 |---|---|---|
-| Web (Vercel) | Solo, con cada push a `feat/api-modelo-v1` | Rama de producción configurada en Vercel |
+| Web (Vercel) | Solo, con cada push a `feat/dashboard-graficas-y-calendario` de `Brauulioo/ReservaITN` | Proyecto `reserva-itn-v2`, rama de producción configurada en Vercel |
 | API (Render) | Solo, con cada push a la misma rama | Aplica migraciones nuevas al iniciar |
 | Base (Neon) | Con la API | Migraciones versionadas con checksum: nunca se edita una ya aplicada |
 | App (EAS) | A pedido | `eas build`; el APK se instala por enlace o QR |
@@ -176,8 +176,8 @@ Guía de despliegue, costos de producción y variables de entorno: [docs/08-desp
 
 1. **Producción separada de la demostración.** Base nueva sin datos demo (`MIGRAR_OPCIONES=--semillas`),
    `JWT_SECRET` propio, `NEXT_PUBLIC_MOSTRAR_DEMO` sin definir y cuentas a nombre del ITN.
-2. **API y base en la misma región.** Hoy la API está en Oregón y la base en São Paulo: cada solicitud
-   tarda unos 9 s. En la misma región baja a 1–2 s.
+2. **Mantener API y base en la misma región.** Hoy ambas están en Oregón (`reservaitn-api-v2` en Render y
+   `reservaitn-oregon` en Neon).
 3. **Plan pagado para la API** (sin "dormirse") y respaldos con recuperación a un punto en el tiempo,
    como está presupuestado en `docs/08-despliegue.md`.
 4. **Correo institucional** (`no-responder@itn.cl`) con SPF/DKIM para que los avisos no lleguen a spam.

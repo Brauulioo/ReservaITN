@@ -4,7 +4,7 @@ API REST de ReservaITN (NestJS 11 + Prisma 5). Concentra las reglas de negocio, 
 las validaciones; las reglas críticas (anti-choques, transiciones, auditoría, días no disponibles)
 también las garantiza la base de datos (`packages/db`).
 
-Publicada en Render: <https://reservaitn.onrender.com/api/health>. Documento técnico de los módulos:
+Publicada en Render: <https://reservaitn-api-v2.onrender.com/api/health>. Documento técnico de los módulos:
 `Documento técnico · ReservaITN` (M1–M4).
 
 ## Módulos

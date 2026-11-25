@@ -3,7 +3,7 @@
 App Android de ReservaITN (Expo SDK 58, React Native). Una sola app con pestañas según los permisos de
 la persona; usa la misma API y los mismos esquemas de validación que la web.
 
-Última versión: **1.2.0** (APK en [expo.dev · jgb-team/reservaitn](https://expo.dev/accounts/jgb-team/projects/reservaitn/builds)).
+Última versión: **1.3.0** (APK en [expo.dev · brauulioo/reservaitn](https://expo.dev/accounts/brauulioo/projects/reservaitn/builds)).
 
 ## Pestañas por rol
 

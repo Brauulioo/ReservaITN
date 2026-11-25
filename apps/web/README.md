@@ -1,7 +1,7 @@
 # @reservaitn/web
 
 Web de ReservaITN (Next.js 16 + React 19). No guarda datos: todo lo pide a la API (`apps/api`) con el
-token de la sesión. Publicada en Vercel: <https://reserva-itn-puce.vercel.app>.
+token de la sesión. Publicada en Vercel: <https://reserva-itn-v2.vercel.app>.
 
 El detalle de pantallas, identidad visual y cómo agregar una pantalla está en
 [`docs/09-web.md`](../../docs/09-web.md). Documento técnico de los módulos: `Documento técnico · ReservaITN` (M1–M4).
