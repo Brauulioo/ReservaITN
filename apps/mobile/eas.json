@@ -10,7 +10,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://reservaitn.onrender.com/api",
+        "EXPO_PUBLIC_API_URL": "https://reservaitn-api-v2.onrender.com/api",
         "EXPO_PUBLIC_MOSTRAR_DEMO": "true"
       }
     },
@@ -19,7 +19,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://reservaitn.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://reservaitn-api-v2.onrender.com/api"
       }
     }
   }
