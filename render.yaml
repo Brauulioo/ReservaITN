@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    branch: feat/api-modelo-v1
+    branch: feat/dashboard-graficas-y-calendario
     buildCommand: >-
       corepack enable &&
       pnpm install --frozen-lockfile --filter "@reservaitn/api..." --filter "@reservaitn/db..." &&
